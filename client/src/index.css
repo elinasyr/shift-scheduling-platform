@@ -1,0 +1,54 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/* Calendar customizations */
+.fc-day-today {
+  background-color: rgba(135, 206, 250, 0.2) !important;
+}
+
+.fc-event {
+  cursor: pointer;
+}
+
+.availability-available {
+  background-color: rgba(40, 167, 69, 0.3) !important;
+  border: none !important;
+}
+
+.availability-unavailable {
+  background-color: rgba(220, 53, 69, 0.3) !important;
+  border: none !important;
+}
+
+.availability-preferred {
+  background-color: rgba(255, 193, 7, 0.3) !important;
+  border: none !important;
+}
+
+.holiday-event {
+  background-color: rgba(138, 43, 226, 0.2) !important;
+  color: #6a0dad !important;
+  border: none !important;
+}
+
+.shift-event {
+  background-color: #007bff !important;
+  border: none !important;
+  color: white !important;
+}
+
+.shift-event.is-override {
+  background-color: #17a2b8 !important;
+  border-left: 3px solid #0062cc !important;
+}
