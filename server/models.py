@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from sqlalchemy import Enum, CheckConstraint, ForeignKey
+from werkzeug.security import generate_password_hash, check_password_hash
 import enum
 
 db = SQLAlchemy()
@@ -27,6 +28,7 @@ class CategoryEnum(enum.Enum):
 class AvailabilityEnum(enum.Enum):
     AVAILABLE = "available"
     UNAVAILABLE = "unavailable"
+    HOLIDAY = "holiday"
 
 class HolidayType(enum.Enum):
     REGULAR = "regular"
@@ -40,13 +42,16 @@ class Doctor(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
+    username = db.Column(db.String(50), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
     rank = db.Column(Enum(RankEnum), nullable=False)
     is_new = db.Column(db.Boolean, default=False)
     category = db.Column(Enum(CategoryEnum), nullable=False)
     specialization = db.Column(Enum(SpecializationEnum), nullable=False)
     abroad = db.Column(db.Boolean, default=False) # για άσκηση στο εξωτερικό
     visiting = db.Column(db.Boolean, default=False) # εμβολίμοι από άλλα νοσοκομεία
+    profile_photo = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -54,6 +59,43 @@ class Doctor(db.Model):
     availabilities = db.relationship('Availability', back_populates='doctor', cascade='all, delete-orphan')
     shifts = db.relationship('Shift', back_populates='doctor', cascade='all, delete-orphan')
     rotations = db.relationship('Rotation', back_populates='doctor', cascade='all, delete-orphan')
+    
+    def set_password(self, password):
+        """Set password hash"""
+        self.password_hash = generate_password_hash(password)
+    
+    def check_password(self, password):
+        """Check password against hash"""
+        return check_password_hash(self.password_hash, password)
+    
+    def to_dict(self):
+        """Convert to dictionary for JSON serialization"""
+        # Map category to frontend role
+        role_mapping = {
+            (CategoryEnum.SENIOR, False): 'manager',
+            (CategoryEnum.JUNIOR, False): 'doctor',
+            (CategoryEnum.JUNIOR, True): 'viewer'  # Viewer role for special junior doctors
+        }
+        
+        # Determine role based on username or email for now (can be enhanced)
+        is_viewer = 'viewer' in self.username.lower() or 'viewer' in self.email.lower()
+        role = role_mapping.get((self.category, is_viewer), 'doctor')
+        
+        return {
+            'id': self.id,
+            'firstName': self.first_name,
+            'lastName': self.last_name,
+            'username': self.username,
+            'email': self.email,
+            'role': role,
+            'rank': self.rank.value,
+            'category': self.category.value,
+            'specialty': self.specialization.value,
+            'specialization': self.specialization.value,
+            'profilePhoto': self.profile_photo,
+            'createdAt': self.created_at.isoformat() if self.created_at else None,
+            'updatedAt': self.updated_at.isoformat() if self.updated_at else None
+        }
         
     def __repr__(self):
         return f'<Doctor {self.first_name} {self.last_name}, {self.rank.value}>'
@@ -99,6 +141,7 @@ class Availability(db.Model):
     doctor_id = db.Column(db.Integer, db.ForeignKey('doctors.id'), nullable=False)
     date = db.Column(db.Date, nullable=False)
     status = db.Column(Enum(AvailabilityEnum), nullable=False)
+    notes = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -109,6 +152,18 @@ class Availability(db.Model):
     __table_args__ = (
         db.UniqueConstraint('doctor_id', 'date', name='unique_doctor_date'),
     )
+    
+    def to_dict(self):
+        """Convert to dictionary for JSON serialization"""
+        return {
+            'id': self.id,
+            'doctorId': str(self.doctor_id),
+            'date': self.date.isoformat(),
+            'isAvailable': self.status == AvailabilityEnum.AVAILABLE,
+            'isUnavailable': self.status == AvailabilityEnum.UNAVAILABLE,
+            'isHoliday': self.status == AvailabilityEnum.HOLIDAY,
+            'notes': self.notes
+        }
     
     def __repr__(self):
         return f'<Availability Doctor {self.doctor_id} - {self.date} - {self.status.value}>'
@@ -137,3 +192,36 @@ class Rotation(db.Model):
 
     doctor = db.relationship('Doctor', back_populates='rotations')
     hospital = db.relationship('Hospital', back_populates='rotations')
+
+class HospitalDay(db.Model):
+    __tablename__ = 'hospital_days'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, nullable=False, unique=True)
+    is_on_call = db.Column(db.Boolean, default=False)
+    is_public_holiday = db.Column(db.Boolean, default=False)
+    description = db.Column(db.String(255), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        """Convert to dictionary for JSON serialization"""
+        return {
+            'id': str(self.id),
+            'date': self.date.isoformat(),
+            'isOnCall': self.is_on_call,
+            'isPublicHoliday': self.is_public_holiday,
+            'description': self.description
+        }
+
+class UserSession(db.Model):
+    __tablename__ = 'user_sessions'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('doctors.id'), nullable=False)
+    token = db.Column(db.String(255), unique=True, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    expires_at = db.Column(db.DateTime, nullable=False)
+    
+    # Relationships
+    doctor = db.relationship('Doctor', backref='sessions')

@@ -27,30 +27,35 @@ class SchedulingSolver:
         self.solver_time_limit_seconds = 180  # Increase time limit to 3 minutes
         
     def setup_default_data(self):
-        """Sets up default data for the scheduling problem."""
-        # --------------------
-        # Parameters / Data
-        # --------------------
-        self.num_days = 30
-        self.num_doctors = 11
+        """Sets up default data for the scheduling problem - only if no real data exists."""
+        # Only set defaults if no data has been provided from the database
+        if not hasattr(self, 'doctors') or not self.doctors:
+            # --------------------
+            # Parameters / Data
+            # --------------------
+            self.num_days = 30
+            self.num_doctors = 1
 
-        # Γιατροί: κάθε tuple = (όνομα, είναι_μεγάλος, max_shifts, rotation, is_new)
-        # rotation: None | 'outside' | 'KX' | 'TX'
-        # is_new: True αν ο ειδικευόμενος είναι νέος (κανόνας θ)
-        self.doctors = []
-        for i in range(self.num_doctors):
-            if i < 3:
-                rot = 'outside'
-            elif 3 <= i < 7:
-                rot = 'KX'
-            elif 7 <= i < 11:
-                rot = 'TX'
-            else:
-                rot = None
-            is_new = (i >= 11)  # πχ οι τελευταίοι 2 είναι νέοι
-            abroad = (i == 0) # πχ doctor_0 ασκείται στο εξωτερικό
-            visiting = (i == 1) # πχ doctor_1 είναι εμβολίμος
-            self.doctors.append((f"Doctor_{i}", (i % 3 == 0), 8, rot, is_new, abroad, visiting))
+            # Γιατροί: κάθε tuple = (όνομα, είναι_μεγάλος, max_shifts, rotation, is_new)
+            # rotation: None | 'outside' | 'KX' | 'TX'
+            # is_new: True αν ο ειδικευόμενος είναι νέος (κανόνας θ)
+            self.doctors = []
+            for i in range(self.num_doctors):
+                if i < 3:
+                    rot = 'outside'
+                elif 3 <= i < 7:
+                    rot = 'KX'
+                elif 7 <= i < 11:
+                    rot = 'TX'
+                else:
+                    rot = None
+                is_new = (i >= 11)  # πχ οι τελευταίοι 2 είναι νέοι
+                abroad = (i == 0) # πχ doctor_0 ασκείται στο εξωτερικό
+                visiting = (i == 1) # πχ doctor_1 είναι εμβολίμος
+                self.doctors.append((f"Doctor_{i}", (i % 3 == 0), 8, rot, is_new, abroad, visiting))
+        
+        # Update num_doctors based on actual doctors list
+        self.num_doctors = len(self.doctors)
 
     def setup_day_types(self):
         """Sets up day types for the scheduling problem."""
@@ -70,20 +75,15 @@ class SchedulingSolver:
         # Θεωρούμε ότι ο μήνας ξεκινάει Δευτέρα (0=Δευτέρα)
         self.day_of_week = [(d % 7) for d in range(self.num_days)]  # 0=Δευτέρα ... 5=Σάββατο, 6=Κυριακή
 
-        # Δηλώσεις αργιών (προς το παρόν none)
-        self.public_holidays = set()
+        # Only set default availability if none has been provided
+        if not hasattr(self, 'availability') or not self.availability:
+            # Διαθεσιμότητες - default all available
+            self.availability = {i: {d: True for d in range(self.num_days)} for i in range(self.num_doctors)}
 
-        # Διαθεσιμότητες
-        self.availability = {i: {d: True for d in range(self.num_days)} for i in range(self.num_doctors)}
-        # πχ doctor_0 δεν είναι διαθέσιμος τις μέρες 5,6,7
-        # self.availability[11][4] = False
-        # self.availability[10][4] = False
-        # self.availability[5][4] = False
-        # self.availability[6][4] = False
-        # self.availability[1][4] = False
-        # self.availability[11][6] = False
-        # self.availability[11][7] = False
-        # self.availability[8][4] = False  
+        # Only set default public holidays if none have been provided
+        if not hasattr(self, 'public_holidays'):
+            # Δηλώσεις αργιών (προς το παρόν none)
+            self.public_holidays = set()  
 
     def setup_surgery_days(self):
         """Sets up surgery days for KX and TX rotations."""
@@ -284,6 +284,7 @@ class SchedulingSolver:
         status = self.solver.Solve(self.model)
         
         # Debug status
+        print(f"Solver status: {status}")
         if status == cp_model.OPTIMAL:
             print("Found optimal solution!")
         elif status == cp_model.FEASIBLE:
@@ -458,12 +459,12 @@ class SchedulingSolver:
 
 
 # Example usage of the solver class
-if __name__ == "__main__":
-    solver = SchedulingSolver()
+# if __name__ == "__main__":
+#     solver = SchedulingSolver()
     
-    # Uncomment this section to solve and generate a schedule
-    results = solver.solve()
-    solver.print_results(results)
+#     # Uncomment this section to solve and generate a schedule
+#     results = solver.solve()
+#     solver.print_results(results)
 
     # example_schedule = {
     #     0: [0, 2],

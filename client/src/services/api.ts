@@ -1,155 +1,356 @@
 import axios from 'axios';
-import { Doctor, Availability, Shift, Holiday, AvailabilityStatus } from '../types';
+import { User, SignupData, Doctor, DayAvailability, Schedule, HospitalDay, GenerateScheduleRequest, ScheduleGenerationResult } from '../types';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
-// Create an axios instance with CORS configuration
 const apiClient = axios.create({
-  baseURL: API_URL,
-  withCredentials: true,
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  }
+  },
 });
 
-// Doctor services
-export const getDoctors = async (): Promise<Doctor[]> => {
-  const response = await apiClient.get(`/api/doctors`);
+// Add request interceptor to include auth token
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Add response interceptor for error handling
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
+export const setAuthToken = (token: string | null) => {
+  if (token) {
+    apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  } else {
+    delete apiClient.defaults.headers.common['Authorization'];
+  }
+};
+
+// Authentication APIs
+export const login = async (email: string, password: string) => {
+  const response = await apiClient.post('/auth/login', { email, password });
   return response.data;
 };
 
-export const getDoctor = async (id: number): Promise<Doctor> => {
-  const response = await apiClient.get(`/api/doctors/${id}`);
+export const signup = async (userData: SignupData) => {
+  const response = await apiClient.post('/auth/signup', userData);
   return response.data;
 };
 
-export const createDoctor = async (doctor: Omit<Doctor, 'id'>): Promise<Doctor> => {
-  const response = await apiClient.post(`/api/doctors`, doctor);
+export const getCurrentUser = async (): Promise<User> => {
+  const response = await apiClient.get('/auth/me');
   return response.data;
 };
 
-// Availability services
-export const getDoctorAvailability = async (
-  doctorId: number,
-  startDate?: string,
-  endDate?: string
-): Promise<Availability> => {
-  let params: any = {};
-  
-  if (startDate) params.startDate = startDate;
-  if (endDate) params.endDate = endDate;
-  
-  const response = await apiClient.get(`/api/availability/${doctorId}`, { params });
-  return response.data;
+// Doctor APIs - Updated to match existing backend
+export const getAllDoctors = async (): Promise<Doctor[]> => {
+  const response = await apiClient.get('/doctors');
+  // Map backend data to frontend types
+  return response.data.map((doctor: any) => ({
+    id: doctor.id.toString(),
+    firstName: doctor.firstName,
+    lastName: doctor.lastName,
+    email: doctor.email,
+    username: doctor.username,
+    role: doctor.role, // Now mapped correctly in backend
+    specialty: doctor.specialty,
+    rank: doctor.rank,
+    profilePhoto: doctor.profilePhoto || '',
+    availability: [], // Empty for now, will be loaded separately
+    createdAt: doctor.createdAt,
+    updatedAt: doctor.updatedAt
+  }));
 };
 
-export const setDoctorAvailability = async (
-  doctorId: number,
-  date: string,
-  status: AvailabilityStatus
-): Promise<{ success: boolean }> => {
-  const response = await apiClient.post(`/api/availability/${doctorId}`, {
-    date,
-    status
-  });
-  return response.data;
+export const getDoctorById = async (id: string): Promise<Doctor> => {
+  const response = await apiClient.get(`/doctors/${id}`);
+  const doctor = response.data;
+  return {
+    id: doctor.id.toString(),
+    firstName: doctor.firstName,
+    lastName: doctor.lastName,
+    email: doctor.email,
+    username: doctor.username,
+    role: doctor.role,
+    specialty: doctor.specialty,
+    rank: doctor.rank,
+    profilePhoto: doctor.profilePhoto || '',
+    availability: [],
+    createdAt: doctor.createdAt,
+    updatedAt: doctor.updatedAt
+  };
 };
 
-// Shift services
-export const getShifts = async (
-  startDate?: string,
-  endDate?: string,
-  doctorId?: number,
-  hospitalId?: number
-): Promise<Shift[]> => {
-  const params: any = {};
-  
-  if (startDate) params.startDate = startDate;
-  if (endDate) params.endDate = endDate;
-  if (doctorId) params.doctorId = doctorId;
-  if (hospitalId) params.hospitalId = hospitalId;
-  
-  const response = await apiClient.get(`/api/shifts`, { params });
-  return response.data;
+export const updateDoctor = async (id: string, doctorData: Partial<Doctor>): Promise<Doctor> => {
+  const response = await apiClient.put(`/doctors/${id}`, doctorData);
+  const doctor = response.data;
+  return {
+    id: doctor.id.toString(),
+    firstName: doctor.firstName,
+    lastName: doctor.lastName,
+    email: doctor.email,
+    username: doctor.username,
+    role: doctor.role,
+    specialty: doctor.specialty,
+    rank: doctor.rank,
+    profilePhoto: doctor.profilePhoto || '',
+    availability: [],
+    createdAt: doctor.createdAt,
+    updatedAt: doctor.updatedAt
+  };
 };
 
-export const createShift = async (
-  doctorId: number,
-  hospitalId: number,
-  date: string,
-  isOverride: boolean = false
-): Promise<Shift> => {
-  const response = await apiClient.post(`/api/shifts`, {
-    doctorId,
-    hospitalId,
-    date,
-    isOverride
-  });
-  return response.data;
+export const deleteDoctor = async (id: string): Promise<void> => {
+  await apiClient.delete(`/doctors/${id}`);
 };
 
-export const deleteShift = async (
-  shiftId: number
-): Promise<{ success: boolean }> => {
-  const response = await apiClient.delete(`/api/shifts/${shiftId}`);
-  return response.data;
+// Availability APIs - Updated to match existing backend
+export const getDoctorAvailability = async (doctorId: string, startDate: string, endDate: string): Promise<DayAvailability[]> => {
+  try {
+    const response = await apiClient.get(`/availability/${doctorId}`, {
+      params: { startDate, endDate }
+    });
+    
+    // Convert backend format to frontend format
+    const availability: DayAvailability[] = [];
+    const backendData = response.data.availability || {};
+    
+    // Generate all days in the range
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const dateStr = d.toISOString().split('T')[0];
+      const status = backendData[dateStr] || 'available';
+      
+      availability.push({
+        id: `${doctorId}-${dateStr}`,
+        doctorId: doctorId,
+        date: dateStr,
+        isAvailable: status === 'available',
+        isHoliday: false, // We'll handle holidays separately
+        isUnavailable: status === 'unavailable'
+      });
+    }
+    
+    return availability;
+  } catch (error) {
+    console.error('Failed to load doctor availability:', error);
+    return [];
+  }
 };
 
-export const clearAllShifts = async (
-  year?: number,
-  month?: number,
-  hospitalId?: number
-): Promise<{ success: boolean, deleted_count: number }> => {
-  const params: any = {};
-  
-  if (year) params.year = year;
-  if (month) params.month = month;
-  if (hospitalId) params.hospitalId = hospitalId;
-  
-  const response = await apiClient.delete('/api/shifts/clear', { params });
-  return response.data;
+export const updateDoctorAvailability = async (doctorId: string, availability: DayAvailability[]): Promise<DayAvailability[]> => {
+  try {
+    // Update each day individually
+    for (const day of availability) {
+      let status = 'available';
+      if (day.isUnavailable) status = 'unavailable';
+      else if (!day.isAvailable) status = 'unavailable';
+      
+      await apiClient.post(`/availability/${doctorId}`, {
+        date: day.date,
+        status: status
+      });
+    }
+    return availability;
+  } catch (error) {
+    console.error('Failed to update availability:', error);
+    throw error;
+  }
 };
 
-// Holiday services
-export const getHolidays = async (
-  startDate?: string,
-  endDate?: string
-): Promise<Holiday[]> => {
-  const params: any = {};
-  
-  if (startDate) params.startDate = startDate;
-  if (endDate) params.endDate = endDate;
-  
-  const response = await apiClient.get(`/api/holidays`, { params });
-  return response.data;
+export const getAllAvailability = async (startDate: string, endDate: string): Promise<{ [doctorId: string]: DayAvailability[] }> => {
+  try {
+    // Get all doctors first
+    const doctors = await getAllDoctors();
+    const allAvailability: { [doctorId: string]: DayAvailability[] } = {};
+    
+    // Get availability for each doctor
+    for (const doctor of doctors) {
+      allAvailability[doctor.id] = await getDoctorAvailability(doctor.id, startDate, endDate);
+    }
+    
+    return allAvailability;
+  } catch (error) {
+    console.error('Failed to load all availability:', error);
+    return {};
+  }
 };
 
-// Schedule services
-export const generateSchedule = async (
-  year?: number,
-  month?: number,
-  hospitalId?: number
-): Promise<any> => {
-  const response = await apiClient.post(`/api/schedule/generate`, {
-    year,
-    month,
-    hospitalId
-  });
-  return response.data;
+// Schedule APIs - Updated to work with existing shifts endpoint
+export const generateSchedule = async (request: GenerateScheduleRequest): Promise<ScheduleGenerationResult> => {
+  try {
+    const response = await apiClient.post('/schedule/generate', {
+      startDate: request.startDate,
+      endDate: request.endDate,
+      doctorIds: request.doctorIds
+    });
+    
+    return {
+      success: response.data.success || true,
+      schedule: [], // Will be populated by getSchedule call
+      conflicts: response.data.conflicts || [],
+      warnings: response.data.warnings || []
+    };
+  } catch (error) {
+    console.error('Failed to generate schedule:', error);
+    return {
+      success: false,
+      schedule: [],
+      conflicts: ['Failed to generate schedule'],
+      warnings: []
+    };
+  }
 };
 
-export const validateSchedule = async (
-  year?: number,
-  month?: number,
-  hospitalId?: number
-): Promise<{ valid: boolean, violations: any[] }> => {
-  const params: any = {};
-  
-  if (year) params.year = year;
-  if (month) params.month = month;
-  if (hospitalId) params.hospitalId = hospitalId;
-  
-  const response = await apiClient.get(`/api/schedule/validate`, { params });
-  return response.data;
+export const getSchedule = async (startDate: string, endDate: string): Promise<Schedule[]> => {
+  try {
+    const response = await apiClient.get('/shifts', {
+      params: { startDate, endDate }
+    });
+    
+    // Group shifts by date
+    const shiftsByDate: { [date: string]: any[] } = {};
+    response.data.forEach((shift: any) => {
+      const date = shift.date;
+      if (!shiftsByDate[date]) {
+        shiftsByDate[date] = [];
+      }
+      shiftsByDate[date].push(shift);
+    });
+    
+    // Convert to Schedule format
+    return Object.entries(shiftsByDate).map(([date, shifts]) => ({
+      id: `schedule-${date}`,
+      date: date,
+      doctorIds: shifts.map(shift => shift.doctor_id.toString()),
+      isFinalized: !shifts.some(shift => shift.is_override), // If any shift is override, it's not finalized
+      createdBy: '1', // Default creator
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }));
+  } catch (error) {
+    console.error('Failed to load schedule:', error);
+    return [];
+  }
 };
+
+export const updateSchedule = async (date: string, doctorIds: string[]): Promise<Schedule> => {
+  try {
+    const response = await apiClient.put('/schedule/edit', {
+      date,
+      doctorIds: doctorIds.map(id => parseInt(id))
+    });
+    
+    return {
+      id: `schedule-${date}`,
+      date: date,
+      doctorIds: doctorIds,
+      isFinalized: false,
+      createdBy: '1',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('Failed to update schedule:', error);
+    throw error;
+  }
+};
+
+export const finalizeSchedule = async (startDate: string, endDate: string): Promise<void> => {
+  try {
+    await apiClient.post('/schedule/save', {
+      startDate,
+      endDate
+    });
+  } catch (error) {
+    console.error('Failed to finalize schedule:', error);
+    throw error;
+  }
+};
+
+export const downloadSchedule = async (startDate: string, endDate: string): Promise<Blob> => {
+  try {
+    const response = await apiClient.get('/schedule/download', {
+      params: { startDate, endDate },
+      responseType: 'blob'
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Schedule download not available:', error);
+    // Create a simple text file as fallback
+    const scheduleData = await getSchedule(startDate, endDate);
+    const textContent = scheduleData.map(s => 
+      `${s.date}: ${s.doctorIds.length} doctors assigned`
+    ).join('\n');
+    return new Blob([textContent], { type: 'text/plain' });
+  }
+};
+
+// Hospital Days APIs
+export const getHospitalDays = async (startDate: string, endDate: string): Promise<HospitalDay[]> => {
+  try {
+    const response = await apiClient.get('/hospital-days', {
+      params: { startDate, endDate }
+    });
+    
+    return response.data.map((day: any) => ({
+      id: day.id.toString(),
+      date: day.date,
+      isOnCall: day.isOnCall,
+      isPublicHoliday: day.isPublicHoliday,
+      description: day.description
+    }));
+  } catch (error) {
+    console.error('Failed to load hospital days:', error);
+    return [];
+  }
+};
+
+export const updateHospitalDay = async (date: string, data: Partial<HospitalDay>): Promise<HospitalDay> => {
+  try {
+    const response = await apiClient.post('/hospital-days', {
+      date,
+      isOnCall: data.isOnCall,
+      isPublicHoliday: data.isPublicHoliday,
+      description: data.description
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Failed to update hospital day:', error);
+    throw error;
+  }
+};
+
+// Profile APIs
+export const updateProfile = async (userData: Partial<User>): Promise<User> => {
+  try {
+    const response = await apiClient.put('/profile', userData);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to update profile:', error);
+    throw error;
+  }
+};
+
+export const uploadProfilePhoto = async (file: File): Promise<string> => {
+  // TODO: Implement photo upload endpoint on backend
+  console.log('Photo upload not yet implemented on backend');
+  return '/placeholder-avatar.png';
+};
+
+export default apiClient;
