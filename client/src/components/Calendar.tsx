@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Row, Col, Badge, Alert, Modal, Form } from 'react-bootstrap';
+import { Card, Button, Row, Col, Badge, Alert, Modal, Form, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { useAuth } from '../contexts/AuthContext';
 import { CalendarDay, DayAvailability, HospitalDay } from '../types';
 import * as api from '../services/api';
@@ -18,6 +18,8 @@ const Calendar: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [hospitalDays, setHospitalDays] = useState<HospitalDay[]>([]);
   const [allAvailability, setAllAvailability] = useState<{ [doctorId: string]: DayAvailability[] }>({});
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [doctorsData, setDoctorsData] = useState<{ [doctorId: string]: { firstName: string; lastName: string } }>({});
 
   useEffect(() => {
     loadCalendarData();
@@ -35,6 +37,14 @@ const Calendar: React.FC = () => {
       // Load hospital days (on-call and public holidays)
       const hospitalDaysData = await api.getHospitalDays(startDateStr, endDateStr);
       setHospitalDays(hospitalDaysData);
+
+      // Load all doctors data for names
+      const doctors = await api.getAllDoctors();
+      const doctorsMap: { [doctorId: string]: { firstName: string; lastName: string } } = {};
+      doctors.forEach(doctor => {
+        doctorsMap[doctor.id] = { firstName: doctor.firstName, lastName: doctor.lastName };
+      });
+      setDoctorsData(doctorsMap);
 
       // Load user's availability if doctor or manager
       if (user && (user.role === 'doctor' || user.role === 'manager')) {
@@ -89,7 +99,7 @@ const Calendar: React.FC = () => {
   };
 
   const handleDayClick = (date: string) => {
-    if (user?.role === 'viewer') return;
+    if (user?.role === 'viewer' || !isEditMode) return;
 
     const currentDay = new Date(date);
     const today = new Date();
@@ -146,6 +156,7 @@ const Calendar: React.FC = () => {
       }
 
       await api.updateDoctorAvailability(user.id, availability);
+      setIsEditMode(false);
       alert('Availability saved successfully!');
     } catch (error) {
       console.error('Failed to save availability:', error);
@@ -186,7 +197,14 @@ const Calendar: React.FC = () => {
     for (const [doctorId, availability] of Object.entries(allAvailability)) {
       const dayAvail = availability.find(a => a.date === date);
       if (dayAvail && dayAvail.isAvailable) {
-        available.push(doctorId);
+        const doctorInfo = doctorsData[doctorId];
+        if (doctorInfo) {
+          available.push({
+            id: doctorId,
+            initials: `${doctorInfo.firstName.charAt(0)}${doctorInfo.lastName.charAt(0)}`,
+            fullName: `${doctorInfo.firstName} ${doctorInfo.lastName}`
+          });
+        }
       }
     }
     return available;
@@ -219,6 +237,28 @@ const Calendar: React.FC = () => {
           {user?.role === 'viewer' && (
             <Alert variant="info">
               You have view-only access. The final schedule will appear here when available.
+            </Alert>
+          )}
+          {(user?.role === 'doctor' || user?.role === 'manager') && (
+            <Alert variant={isEditMode ? "warning" : "success"} className="d-flex justify-content-between align-items-center">
+              <div>
+                {isEditMode ? (
+                  <>
+                    <strong>Edit Mode:</strong> Click on calendar days to set your availability. Don't forget to save your changes!
+                  </>
+                ) : (
+                  <>
+                    <strong>View Mode:</strong> Your availability is set. Click "Edit Availability" to make changes.
+                  </>
+                )}
+              </div>
+              <Button 
+                variant={isEditMode ? "success" : "primary"}
+                onClick={() => setIsEditMode(!isEditMode)}
+                size="sm"
+              >
+                {isEditMode ? "Exit Edit Mode" : "Edit Availability"}
+              </Button>
             </Alert>
           )}
         </Col>
@@ -261,26 +301,59 @@ const Calendar: React.FC = () => {
                     key={dayIndex} 
                     className={getDayClass(dayData)}
                     onClick={() => handleDayClick(dayData.date)}
-                    style={{ minHeight: '80px', cursor: user?.role !== 'viewer' ? 'pointer' : 'default' }}
+                    style={{ 
+                      minHeight: '80px', 
+                      cursor: (user?.role !== 'viewer' && isEditMode) ? 'pointer' : 'default' 
+                    }}
                   >
                     <div className="fw-bold">
                       {new Date(dayData.date).getDate()}
                     </div>
                     
-                    {/* Show available doctors as small circles */}
+                    {/* Show available doctors as green circles with initials */}
                     {availableDoctors.length > 0 && (
-                      <div className="profile-avatars">
-                        {availableDoctors.slice(0, 3).map((doctorId, index) => (
-                          <div 
-                            key={doctorId}
-                            className="profile-avatar bg-success"
-                            title={`Doctor ${doctorId} available`}
-                          />
-                        ))}
-                        {availableDoctors.length > 3 && (
-                          <small className="text-muted">+{availableDoctors.length - 3}</small>
-                        )}
-                      </div>
+                      <OverlayTrigger
+                        placement="top"
+                        overlay={
+                          <Tooltip id={`tooltip-${dayData.date}`}>
+                            <div className="text-start">
+                              <strong>Available Doctors:</strong>
+                              <br />
+                              {availableDoctors.map((doctor, index) => (
+                                <div key={doctor.id}>
+                                  • {doctor.fullName}
+                                </div>
+                              ))}
+                            </div>
+                          </Tooltip>
+                        }
+                      >
+                        <div className="profile-avatars">
+                          {availableDoctors.slice(0, 4).map((doctor) => (
+                            <div 
+                              key={doctor.id}
+                              className="profile-avatar bg-success text-white"
+                              style={{
+                                width: '20px',
+                                height: '20px',
+                                borderRadius: '50%',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '8px',
+                                fontWeight: 'bold',
+                                margin: '1px',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              {doctor.initials}
+                            </div>
+                          ))}
+                          {availableDoctors.length > 4 && (
+                            <small className="text-muted d-block">+{availableDoctors.length - 4}</small>
+                          )}
+                        </div>
+                      </OverlayTrigger>
                     )}
                   </Col>
                 );
@@ -297,14 +370,19 @@ const Calendar: React.FC = () => {
                 <Badge bg="warning" className="me-2 ms-3">■</Badge> Holiday
                 <Badge bg="info" className="me-2 ms-3">●</Badge> On Call
                 <Badge bg="warning" className="me-2 ms-3">★</Badge> Public Holiday
+                <Badge bg="success" className="me-2 ms-3">●</Badge> Available Doctors
               </div>
-              <Button 
-                variant="primary" 
-                onClick={saveAvailability}
-                disabled={saving}
-              >
-                {saving ? 'Saving...' : 'Save Availability'}
-              </Button>
+              {isEditMode && (
+                <Button 
+                  variant="success" 
+                  onClick={saveAvailability}
+                  disabled={saving}
+                  size="lg"
+                  className="fw-bold"
+                >
+                  {saving ? 'Saving Changes...' : 'Save Availability'}
+                </Button>
+              )}
             </div>
           </Card.Footer>
         )}

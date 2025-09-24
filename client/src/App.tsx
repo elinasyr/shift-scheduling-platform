@@ -4,7 +4,6 @@ import { useAuth } from './contexts/AuthContext';
 import Layout from './components/Layout';
 import Login from './components/auth/Login';
 import Signup from './components/auth/Signup';
-import Dashboard from './components/Dashboard';
 import Calendar from './components/Calendar';
 import Profile from './components/Profile';
 import DoctorsList from './components/manager/DoctorsList';
@@ -39,7 +38,6 @@ const App: React.FC = () => {
         {/* Routes for doctors and managers */}
         {(user.role === 'doctor' || user.role === 'manager') && (
           <>
-            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/schedule" element={<Schedule />} />
           </>
         )}

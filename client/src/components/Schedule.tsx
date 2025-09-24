@@ -55,18 +55,30 @@ const Schedule: React.FC = () => {
 
       const blob = await api.downloadSchedule(startDateStr, endDateStr);
       
+      // Check if the blob is actually a PDF or fallback text
+      const contentType = blob.type;
+      const fileName = contentType.includes('pdf') 
+        ? `schedule-${startDateStr}-to-${endDateStr}.pdf`
+        : `schedule-${startDateStr}-to-${endDateStr}.txt`;
+      
       // Create download link
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `schedule-${startDateStr}-to-${endDateStr}.pdf`;
+      link.download = fileName;
+      link.style.display = 'none';
       document.body.appendChild(link);
       link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+      
+      // Clean up
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }, 100);
+      
     } catch (error) {
       console.error('Failed to download schedule:', error);
-      alert('Failed to download schedule');
+      alert('Failed to download schedule. Please try again.');
     } finally {
       setDownloading(false);
     }
@@ -226,6 +238,11 @@ const Schedule: React.FC = () => {
       ? schedule.filter(s => s.isFinalized) 
       : schedule;
 
+    // Sort by date
+    const sortedSchedule = [...visibleSchedule].sort((a, b) => {
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    });
+
     return (
       <Table responsive striped>
         <thead>
@@ -237,7 +254,7 @@ const Schedule: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {visibleSchedule.map((shift) => {
+          {sortedSchedule.map((shift) => {
             const hospitalDay = getHospitalDay(shift.date);
             return (
               <tr key={shift.id} className={isUserOnCall(shift.date) ? 'user-assigned-row' : ''}>

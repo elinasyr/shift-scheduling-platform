@@ -27,11 +27,22 @@ const ManagerDashboard: React.FC = () => {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-      const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+      // Create a date set to the 1st of current month to avoid day overflow issues
+      const baseDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      const startDate = new Date(baseDate.getFullYear(), baseDate.getMonth() + 1, 1);
+      const endDate = new Date(baseDate.getFullYear(), baseDate.getMonth() + 2, 0);
       
-      const startDateStr = startDate.toISOString().split('T')[0];
-      const endDateStr = endDate.toISOString().split('T')[0];
+      // Format dates as YYYY-MM-DD without timezone issues
+      const startDateStr = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
+      const endDateStr = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
+
+      console.log('Date calculations:', {
+        baseDate: baseDate.toDateString(),
+        startDate: startDate.toDateString(),
+        endDate: endDate.toDateString(),
+        startDateStr,
+        endDateStr
+      });
 
       const [scheduleData, doctorsData, availabilityData] = await Promise.all([
         api.getSchedule(startDateStr, endDateStr),
@@ -55,11 +66,22 @@ const ManagerDashboard: React.FC = () => {
       setGenerating(true);
       setError('');
       
-      const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-      const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+      // Create a date set to the 1st of current month to avoid day overflow issues
+      const baseDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      const startDate = new Date(baseDate.getFullYear(), baseDate.getMonth() + 1, 1);
+      const endDate = new Date(baseDate.getFullYear(), baseDate.getMonth() + 2, 0);
       
-      const startDateStr = startDate.toISOString().split('T')[0];
-      const endDateStr = endDate.toISOString().split('T')[0];
+      // Format dates as YYYY-MM-DD without timezone issues
+      const startDateStr = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
+      const endDateStr = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
+
+      console.log('Generate schedule date calculations:', {
+        baseDate: baseDate.toDateString(),
+        startDate: startDate.toDateString(),
+        endDate: endDate.toDateString(),
+        startDateStr,
+        endDateStr
+      });
 
       const doctorIds = doctors.map(d => d.id);
       const preferences = Object.values(allAvailability).flat();
@@ -115,11 +137,22 @@ const ManagerDashboard: React.FC = () => {
 
     try {
       setSaving(true);
-      const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-      const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+      // Create a date set to the 1st of current month to avoid day overflow issues
+      const baseDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      const startDate = new Date(baseDate.getFullYear(), baseDate.getMonth() + 1, 1);
+      const endDate = new Date(baseDate.getFullYear(), baseDate.getMonth() + 2, 0);
       
-      const startDateStr = startDate.toISOString().split('T')[0];
-      const endDateStr = endDate.toISOString().split('T')[0];
+      // Format dates as YYYY-MM-DD without timezone issues
+      const startDateStr = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
+      const endDateStr = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
+
+      console.log('Finalize schedule date calculations:', {
+        baseDate: baseDate.toDateString(),
+        startDate: startDate.toDateString(),
+        endDate: endDate.toDateString(),
+        startDateStr,
+        endDateStr
+      });
 
       await api.finalizeSchedule(startDateStr, endDateStr);
       setMessage('Schedule finalized successfully!');
@@ -162,6 +195,10 @@ const ManagerDashboard: React.FC = () => {
   const hasSchedule = schedule.length > 0;
   const hasDraftSchedule = schedule.some(s => !s.isFinalized);
 
+  // Display the month we're actually scheduling for (next month)
+  const baseDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+  const schedulingMonth = new Date(baseDate.getFullYear(), baseDate.getMonth() + 1, 1);
+
   return (
     <div>
       <Row className="mb-4">
@@ -182,7 +219,7 @@ const ManagerDashboard: React.FC = () => {
               ← Previous
             </Button>
             <h4 className="mb-0">
-              {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+              Scheduling for: {monthNames[schedulingMonth.getMonth()]} {schedulingMonth.getFullYear()}
             </h4>
             <Button variant="outline-primary" onClick={nextMonth} className="ms-3">
               Next →

@@ -287,17 +287,63 @@ export const downloadSchedule = async (startDate: string, endDate: string): Prom
   try {
     const response = await apiClient.get('/schedule/download', {
       params: { startDate, endDate },
-      responseType: 'blob'
+      responseType: 'blob',
+      headers: {
+        'Accept': 'application/pdf, application/octet-stream, text/plain'
+      }
     });
+    
+    // If the response is very small, it might be an error message
+    if (response.data.size < 100) {
+      throw new Error('Invalid PDF response');
+    }
+    
     return response.data;
   } catch (error) {
-    console.error('Schedule download not available:', error);
-    // Create a simple text file as fallback
-    const scheduleData = await getSchedule(startDate, endDate);
-    const textContent = scheduleData.map(s => 
-      `${s.date}: ${s.doctorIds.length} doctors assigned`
-    ).join('\n');
-    return new Blob([textContent], { type: 'text/plain' });
+    console.error('Schedule download not available, creating fallback:', error);
+    
+    // Create a more detailed text file as fallback
+    try {
+      const scheduleData = await getSchedule(startDate, endDate);
+      const doctors = await getAllDoctors();
+      const doctorMap = doctors.reduce((map, doctor) => {
+        map[doctor.id] = `${doctor.firstName} ${doctor.lastName} (${doctor.specialty})`;
+        return map;
+      }, {} as { [id: string]: string });
+      
+      let textContent = `SCHEDULE REPORT\n`;
+      textContent += `Period: ${startDate} to ${endDate}\n`;
+      textContent += `Generated: ${new Date().toLocaleDateString()}\n\n`;
+      
+      if (scheduleData.length === 0) {
+        textContent += 'No schedule data available for this period.\n';
+      } else {
+        scheduleData.forEach(s => {
+          textContent += `${new Date(s.date).toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          })}:\n`;
+          
+          if (s.doctorIds.length === 0) {
+            textContent += '  No assignments\n';
+          } else {
+            s.doctorIds.forEach(doctorId => {
+              const doctorName = doctorMap[doctorId] || `Doctor ID: ${doctorId}`;
+              textContent += `  - ${doctorName}\n`;
+            });
+          }
+          textContent += '\n';
+        });
+      }
+      
+      return new Blob([textContent], { type: 'text/plain' });
+    } catch (fallbackError) {
+      console.error('Failed to create fallback:', fallbackError);
+      const errorContent = `Failed to generate schedule report.\nPeriod: ${startDate} to ${endDate}\nPlease contact support.`;
+      return new Blob([errorContent], { type: 'text/plain' });
+    }
   }
 };
 

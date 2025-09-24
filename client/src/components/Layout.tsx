@@ -27,8 +27,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     // Add different items based on role
     if (user.role === 'doctor' || user.role === 'manager') {
       baseItems.push(
-        { path: '/dashboard', label: 'Dashboard', roles: ['doctor', 'manager'] },
-        { path: '/profile', label: 'Profile', roles: ['doctor', 'manager'] },
         { path: '/schedule', label: 'Schedule', roles: ['doctor', 'manager'] }
       );
     }
@@ -42,7 +40,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
     if (user.role === 'viewer') {
       baseItems.push(
-        { path: '/profile', label: 'Profile', roles: ['viewer'] },
         { path: '/schedule', label: 'Schedule', roles: ['viewer'] }
       );
     }
