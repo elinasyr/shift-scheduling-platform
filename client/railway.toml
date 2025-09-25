@@ -1,0 +1,11 @@
+[build]
+builder = "NIXPACKS"
+
+[build.nixpacksPhase.install]
+cmds = ["npm ci"]
+
+[build.nixpacksPhase.build] 
+cmds = ["npm run build"]
+
+[deploy]
+startCommand = "npx serve -s build -l $PORT"
