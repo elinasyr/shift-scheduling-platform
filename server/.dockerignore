@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local development
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Database (SQLite - will use PostgreSQL in production)
+*.sqlite
+*.sqlite3
+*.db
+
+# Logs
+*.log
+logs/
+
+# Test files
+test_*.py
+*_test.py
+pytest_cache/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Scripts that aren't needed in production
+run.sh
+view_db.sh
+update_schema.py
+
+# Git
+.git/
+.gitignore

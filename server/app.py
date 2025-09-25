@@ -15,11 +15,22 @@ from functools import wraps
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
 
-# Enable CORS with specific configuration
-CORS(app, resources={r"/api/*": {"origins": ["http://localhost:3000", "http://127.0.0.1:3000"]}}, supports_credentials=True)
+# Get the frontend URL from environment variables for CORS
+frontend_url = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+allowed_origins = [frontend_url, "http://localhost:3000", "http://127.0.0.1:3000"]
 
-# Configure the SQLite database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(os.path.abspath(os.path.dirname(__file__)), 'scheduling.sqlite')
+# Enable CORS with production-ready configuration
+CORS(app, resources={r"/api/*": {"origins": allowed_origins}}, supports_credentials=True)
+
+# Configure database - use PostgreSQL in production, SQLite for development
+database_url = os.environ.get('DATABASE_URL')
+if database_url:
+    # Railway provides PostgreSQL DATABASE_URL
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+else:
+    # Fallback to SQLite for local development
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(os.path.abspath(os.path.dirname(__file__)), 'scheduling.sqlite')
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize the database with the app
@@ -1163,9 +1174,13 @@ if __name__ == '__main__':
         # Initialize database tables
         create_tables()
         
-        print("Starting Flask server on http://localhost:5001")
+        # Use PORT environment variable provided by Railway
+        port = int(os.environ.get('PORT', 5001))
+        debug = os.environ.get('FLASK_ENV') == 'development'
+        
+        print(f"Starting Flask server on port {port}")
         print("Server is ready to accept requests...")
-        app.run(debug=True, port=5001, host='0.0.0.0')
+        app.run(debug=debug, port=port, host='0.0.0.0')
     except Exception as e:
         print(f"Error starting server: {e}")
         import traceback
