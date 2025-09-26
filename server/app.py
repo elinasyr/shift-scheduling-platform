@@ -36,6 +36,23 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Initialize the database with the app
 db.init_app(app)
 
+# Initialize database tables when the app starts (for production deployment)
+def initialize_database():
+    """Initialize database tables"""
+    try:
+        print("Initializing database tables...")
+        with app.app_context():
+            create_tables()
+        print("Database initialization complete")
+    except Exception as e:
+        print(f"Error initializing database: {e}")
+        import traceback
+        traceback.print_exc()
+
+# Call initialization when module is imported (for Gunicorn)
+if os.environ.get('DATABASE_URL'):  # Only in production
+    initialize_database()
+
 # Authentication decorator
 def token_required(f):
     @wraps(f)
@@ -1027,7 +1044,7 @@ def update_profile():
                 'general': SpecializationEnum.GENERAL
             }
             doctor.specialization = specialty_map.get(data['specialty'].lower(), SpecializationEnum.GENERAL)
-        if 'rank' in data:
+            if 'rank' in data:
             rank_map = {
                 'resident': RankEnum.RESIDENT,
                 'consultant': RankEnum.CONSULTANT
