@@ -36,6 +36,70 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Initialize the database with the app
 db.init_app(app)
 
+def add_mock_data():
+    """Add mock data for testing"""
+    # Add mock doctors if none exist
+    if Doctor.query.count() == 0:
+        # Manager
+        manager = Doctor(
+            first_name="John",
+            last_name="Manager",
+            username="manager",
+            email="manager@hospital.com",
+            rank=RankEnum.CONSULTANT,
+            category=CategoryEnum.SENIOR,
+            specialization=SpecializationEnum.CARDIOLOGY,
+            is_new=False
+        )
+        manager.set_password("password123")
+        
+        # Senior Doctor
+        senior_doc = Doctor(
+            first_name="Sarah",
+            last_name="Senior",
+            username="senior",
+            email="senior@hospital.com",
+            rank=RankEnum.CONSULTANT,
+            category=CategoryEnum.JUNIOR,
+            specialization=SpecializationEnum.THORACIC,
+            is_new=False
+        )
+        senior_doc.set_password("password123")
+        
+        # Junior Doctor
+        junior_doc = Doctor(
+            first_name="Mike",
+            last_name="Junior",
+            username="junior",
+            email="junior@hospital.com",
+            rank=RankEnum.RESIDENT,
+            category=CategoryEnum.JUNIOR,
+            specialization=SpecializationEnum.GENERAL,
+            is_new=True
+        )
+        junior_doc.set_password("password123")
+        
+        # Add all doctors to database
+        db.session.add_all([manager, senior_doc, junior_doc])
+        db.session.commit()
+
+def create_tables():
+    """Create database tables"""
+    with app.app_context():
+        db.create_all()
+        
+        # Create default hospital if it doesn't exist
+        if not Hospital.query.first():
+            default_hospital = Hospital(
+                name="Main Hospital",
+                location="City Center"
+            )
+            db.session.add(default_hospital)
+            db.session.commit()
+            
+        # Add mock data for testing
+        add_mock_data()
+
 # Initialize database tables when the app starts (for production deployment)
 def initialize_database():
     """Initialize database tables"""
@@ -1060,24 +1124,6 @@ def update_profile():
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
-# Initialize database tables on startup
-def create_tables():
-    """Create database tables"""
-    with app.app_context():
-        db.create_all()
-        
-        # Create default hospital if it doesn't exist
-        if not Hospital.query.first():
-            default_hospital = Hospital(
-                name="Main Hospital",
-                location="City Center"
-            )
-            db.session.add(default_hospital)
-            db.session.commit()
-            
-        # Add mock data for testing
-        add_mock_data()
-
 def add_mock_data():
     """Add mock data for testing"""
     # Add mock doctors if none exist
@@ -1184,6 +1230,25 @@ def add_mock_data():
         db.session.commit()
         
         print("Mock data added successfully!")
+
+
+# Initialize database tables on startup
+def create_tables():
+    """Create database tables"""
+    with app.app_context():
+        db.create_all()
+        
+        # Create default hospital if it doesn't exist
+        if not Hospital.query.first():
+            default_hospital = Hospital(
+                name="Main Hospital",
+                location="City Center"
+            )
+            db.session.add(default_hospital)
+            db.session.commit()
+            
+        # Add mock data for testing
+        add_mock_data()
 
 if __name__ == '__main__':
     try:
