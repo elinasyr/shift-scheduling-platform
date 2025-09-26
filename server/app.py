@@ -1045,11 +1045,11 @@ def update_profile():
             }
             doctor.specialization = specialty_map.get(data['specialty'].lower(), SpecializationEnum.GENERAL)
             if 'rank' in data:
-            rank_map = {
-                'resident': RankEnum.RESIDENT,
-                'consultant': RankEnum.CONSULTANT
-            }
-            doctor.rank = rank_map.get(data['rank'].lower(), RankEnum.RESIDENT)
+                rank_map = {
+                    'resident': RankEnum.RESIDENT,
+                    'consultant': RankEnum.CONSULTANT
+                }
+                doctor.rank = rank_map.get(data['rank'].lower(), RankEnum.RESIDENT)
         
         doctor.updated_at = datetime.utcnow()
         db.session.commit()
