@@ -213,36 +213,46 @@ const ManagerDashboard: React.FC = () => {
 
       {/* Month Navigation and Actions */}
       <Card className="dashboard-card mb-4">
-        <Card.Header className="d-flex justify-content-between align-items-center">
-          <div className="d-flex align-items-center">
-            <Button variant="outline-primary" onClick={prevMonth} className="me-3">
-              ← Previous
-            </Button>
-            <h4 className="mb-0">
-              Scheduling for: {monthNames[schedulingMonth.getMonth()]} {schedulingMonth.getFullYear()}
-            </h4>
-            <Button variant="outline-primary" onClick={nextMonth} className="ms-3">
-              Next →
-            </Button>
-          </div>
-          <div>
-            <Button 
-              variant="primary" 
-              onClick={handleGenerateSchedule}
-              disabled={generating}
-              className="me-2"
-            >
-              {generating ? 'Generating...' : 'Generate Schedule'}
-            </Button>
-            {hasSchedule && hasDraftSchedule && (
-              <Button 
-                variant="success" 
-                onClick={handleFinalizeSchedule}
-                disabled={saving}
-              >
-                {saving ? 'Finalizing...' : 'Finalize Schedule'}
+        <Card.Header>
+          {/* Mobile-friendly layout */}
+          <div className="d-block d-lg-flex justify-content-between align-items-center">
+            {/* Month navigation */}
+            <div className="d-flex align-items-center justify-content-center mb-3 mb-lg-0">
+              <Button variant="outline-primary" onClick={prevMonth} className="me-2" size="sm">
+                ← Prev
               </Button>
-            )}
+              <h5 className="mb-0 mx-2 text-center">
+                <span className="d-none d-sm-inline">Scheduling for: </span>
+                {monthNames[schedulingMonth.getMonth()]} {schedulingMonth.getFullYear()}
+              </h5>
+              <Button variant="outline-primary" onClick={nextMonth} className="ms-2" size="sm">
+                Next →
+              </Button>
+            </div>
+            
+            {/* Action buttons */}
+            <div className="d-flex flex-column flex-sm-row gap-2 justify-content-center">
+              <Button 
+                variant="primary" 
+                onClick={handleGenerateSchedule}
+                disabled={generating}
+                className="flex-fill"
+                size="sm"
+              >
+                {generating ? 'Generating...' : 'Generate Schedule'}
+              </Button>
+              {hasSchedule && hasDraftSchedule && (
+                <Button 
+                  variant="success" 
+                  onClick={handleFinalizeSchedule}
+                  disabled={saving}
+                  className="flex-fill"
+                  size="sm"
+                >
+                  {saving ? 'Finalizing...' : 'Finalize Schedule'}
+                </Button>
+              )}
+            </div>
           </div>
         </Card.Header>
       </Card>

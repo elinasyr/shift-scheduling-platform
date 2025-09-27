@@ -203,6 +203,70 @@ const Schedule: React.FC = () => {
     );
   };
 
+  const renderMobileScheduleView = () => {
+    const days = getDaysInMonth().filter(day => day !== null) as Date[];
+    const today = new Date();
+    
+    return (
+      <div className="mobile-calendar-view">
+        {days.map((day) => {
+          const dateStr = day.toISOString().split('T')[0];
+          const scheduleForDay = getScheduleForDate(dateStr);
+          const hospitalDay = getHospitalDay(dateStr);
+          const isToday = day.toDateString() === today.toDateString();
+          const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+          const isUserOnCallDay = isUserOnCall(dateStr);
+          
+          let dayClasses = 'mobile-calendar-day';
+          if (isToday) dayClasses += ' today';
+          if (isWeekend) dayClasses += ' weekend';
+          if (hospitalDay?.isOnCall) dayClasses += ' oncall';
+          if (hospitalDay?.isPublicHoliday) dayClasses += ' holiday';
+
+          const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+          const assignedDoctors = scheduleForDay?.doctorIds || [];
+
+          return (
+            <div key={dateStr} className={dayClasses}>
+              <div className="mobile-day-left">
+                <div className="mobile-day-number">{day.getDate()}</div>
+                <div className="mobile-day-name">{dayNames[day.getDay()]}</div>
+              </div>
+              
+              <div className="mobile-day-content">
+                <div className="mobile-day-indicators">
+                  {hospitalDay?.isOnCall && <span className="mobile-indicator" style={{backgroundColor: '#e3f2fd', color: '#1976d2'}}>On Call</span>}
+                  {hospitalDay?.isPublicHoliday && <span className="mobile-indicator" style={{backgroundColor: '#fff3e0', color: '#ef6c00'}}>Public Holiday</span>}
+                  {scheduleForDay && !scheduleForDay.isFinalized && <span className="mobile-indicator" style={{backgroundColor: '#fff3e0', color: '#ef6c00'}}>Draft</span>}
+                  {scheduleForDay?.isFinalized && <span className="mobile-indicator" style={{backgroundColor: '#e8f5e8', color: '#2e7d32'}}>Final</span>}
+                </div>
+                
+                {assignedDoctors.length > 0 ? (
+                  <div className="mobile-available-doctors">
+                    {assignedDoctors.map((doctorId) => {
+                      const doctor = doctors.find(d => String(d.id) === String(doctorId));
+                      const isCurrentUser = user?.id === doctorId || String(user?.id) === String(doctorId);
+                      return doctor ? (
+                        <span 
+                          key={doctorId} 
+                          className={`mobile-doctor-chip ${isCurrentUser ? 'current-user' : ''}`}
+                        >
+                          {doctor.firstName} {doctor.lastName}
+                        </span>
+                      ) : null;
+                    })}
+                  </div>
+                ) : (
+                  <div className="mobile-no-doctors">No doctors assigned</div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   const renderCalendarView = () => {
     const days = getDaysInMonth();
     const weeks = [];
@@ -212,22 +276,24 @@ const Schedule: React.FC = () => {
     }
 
     return (
-      <div className="calendar-view">
-        <div className="calendar-header">
-          <div className="weekday">Sun</div>
-          <div className="weekday">Mon</div>
-          <div className="weekday">Tue</div>
-          <div className="weekday">Wed</div>
-          <div className="weekday">Thu</div>
-          <div className="weekday">Fri</div>
-          <div className="weekday">Sat</div>
-        </div>
-        <div className="calendar-grid">
-          {weeks.map((week, weekIndex) => (
-            <div key={weekIndex} className="calendar-week">
-              {week.map((day, dayIndex) => renderCalendarDay(day))}
-            </div>
-          ))}
+      <div className="desktop-calendar-view">
+        <div className="calendar-view">
+          <div className="calendar-header">
+            <div className="weekday">Sunday</div>
+            <div className="weekday">Monday</div>
+            <div className="weekday">Tuesday</div>
+            <div className="weekday">Wednesday</div>
+            <div className="weekday">Thursday</div>
+            <div className="weekday">Friday</div>
+            <div className="weekday">Saturday</div>
+          </div>
+          <div className="calendar-grid">
+            {weeks.map((week, weekIndex) => (
+              <div key={weekIndex} className="calendar-week">
+                {week.map((day, dayIndex) => renderCalendarDay(day))}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -352,42 +418,51 @@ const Schedule: React.FC = () => {
       {(user?.role !== 'viewer' || hasSchedule) && (
         <>
           <Card className="dashboard-card mb-4">
-            <Card.Header className="d-flex justify-content-between align-items-center">
-              <div className="d-flex align-items-center">
-                <Button variant="outline-primary" onClick={prevMonth} className="me-3">
-                  ← Previous
-                </Button>
-                <h4 className="mb-0">
-                  {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-                </h4>
-                <Button variant="outline-primary" onClick={nextMonth} className="ms-3">
-                  Next →
-                </Button>
-              </div>
-              <div className="d-flex align-items-center">
-                <ButtonGroup className="me-3">
-                  <Button 
-                    variant={viewMode === 'calendar' ? 'primary' : 'outline-primary'}
-                    onClick={() => setViewMode('calendar')}
-                  >
-                    Calendar
+            <Card.Header>
+              <div className="d-block d-lg-flex justify-content-between align-items-center">
+                {/* Month navigation */}
+                <div className="d-flex align-items-center justify-content-center mb-3 mb-lg-0">
+                  <Button variant="outline-primary" onClick={prevMonth} className="me-2" size="sm">
+                    ← Prev
                   </Button>
-                  <Button 
-                    variant={viewMode === 'list' ? 'primary' : 'outline-primary'}
-                    onClick={() => setViewMode('list')}
-                  >
-                    List
+                  <h5 className="mb-0 mx-2 text-center">
+                    {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+                  </h5>
+                  <Button variant="outline-primary" onClick={nextMonth} className="ms-2" size="sm">
+                    Next →
                   </Button>
-                </ButtonGroup>
-                {hasSchedule && (
-                  <Button 
-                    variant="success" 
-                    onClick={handleDownload}
-                    disabled={downloading}
-                  >
-                    {downloading ? 'Downloading...' : 'Download PDF'}
-                  </Button>
-                )}
+                </div>
+                
+                {/* View controls */}
+                <div className="d-flex flex-column flex-sm-row gap-2 justify-content-center">
+                  <ButtonGroup className="flex-fill">
+                    <Button 
+                      variant={viewMode === 'calendar' ? 'primary' : 'outline-primary'}
+                      onClick={() => setViewMode('calendar')}
+                      size="sm"
+                    >
+                      Calendar
+                    </Button>
+                    <Button 
+                      variant={viewMode === 'list' ? 'primary' : 'outline-primary'}
+                      onClick={() => setViewMode('list')}
+                      size="sm"
+                    >
+                      List
+                    </Button>
+                  </ButtonGroup>
+                  {hasSchedule && (
+                    <Button 
+                      variant="success" 
+                      onClick={handleDownload}
+                      disabled={downloading}
+                      className="flex-fill"
+                      size="sm"
+                    >
+                      {downloading ? 'Downloading...' : 'Download PDF'}
+                    </Button>
+                  )}
+                </div>
               </div>
             </Card.Header>
           </Card>
@@ -395,7 +470,12 @@ const Schedule: React.FC = () => {
           <Card className="dashboard-card">
             <Card.Body>
               {hasSchedule ? (
-                viewMode === 'calendar' ? renderCalendarView() : renderListView()
+                viewMode === 'calendar' ? (
+                  <>
+                    {renderMobileScheduleView()}
+                    {renderCalendarView()}
+                  </>
+                ) : renderListView()
               ) : (
                 <Alert variant="warning">
                   <h5>No Schedule Generated</h5>
@@ -488,6 +568,62 @@ const Schedule: React.FC = () => {
           padding: 0.25rem;
           display: flex;
           flex-direction: column;
+        }
+        
+        /* Mobile responsive styles for Schedule calendar */
+        @media (max-width: 768px) {
+          .calendar-view {
+            font-size: 0.7rem;
+          }
+          
+          .weekday {
+            padding: 0.25rem;
+            font-size: 0.7rem;
+          }
+          
+          .calendar-day {
+            min-height: 60px;
+            padding: 0.15rem;
+          }
+          
+          .day-number {
+            font-size: 0.75rem !important;
+          }
+          
+          .doctor-assignment {
+            font-size: 0.65rem !important;
+            padding: 0.1rem 0.2rem !important;
+          }
+          
+          .day-indicators .badge {
+            font-size: 0.6rem !important;
+            padding: 0.05rem 0.2rem !important;
+          }
+        }
+        
+        @media (max-width: 480px) {
+          .calendar-view {
+            font-size: 0.65rem;
+          }
+          
+          .weekday {
+            padding: 0.2rem;
+            font-size: 0.65rem;
+          }
+          
+          .calendar-day {
+            min-height: 50px;
+            padding: 0.1rem;
+          }
+          
+          .day-number {
+            font-size: 0.7rem !important;
+          }
+          
+          .doctor-assignment {
+            font-size: 0.6rem !important;
+            padding: 0.05rem 0.15rem !important;
+          }
         }
         
         .calendar-day.empty {

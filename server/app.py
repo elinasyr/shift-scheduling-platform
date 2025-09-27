@@ -79,9 +79,70 @@ def add_mock_data():
         )
         junior_doc.set_password("password123")
         
-        # Add all doctors to database
-        db.session.add_all([manager, senior_doc, junior_doc])
+        # Viewer role (receptionist/viewer)
+        viewer = Doctor(
+            first_name="Emma",
+            last_name="Viewer",
+            username="viewer",
+            email="viewer@hospital.com",
+            rank=RankEnum.RESIDENT,
+            category=CategoryEnum.JUNIOR,  # We'll handle viewer in frontend logic
+            specialization=SpecializationEnum.GENERAL,
+            is_new=False
+        )
+        viewer.set_password("password123")
+        
+        # Create list to hold all doctors
+        all_doctors = [manager, senior_doc, junior_doc, viewer]
+        
+        # add 9 more senior doctors
+        for i in range(1, 10):
+            doc = Doctor(
+                first_name=f"Senior{i}",
+                last_name="Doctor",
+                username=f"senior{i}",
+                email=f"senior{i}@hospital.com",
+                rank=RankEnum.CONSULTANT,
+                category=CategoryEnum.SENIOR,
+                specialization=SpecializationEnum.GENERAL,
+                is_new=False
+            )
+            doc.set_password("password123")
+            all_doctors.append(doc)
+
+        db.session.add_all(all_doctors)
         db.session.commit()
+        
+        # Add some mock hospital days
+        hospital_days = [
+            HospitalDay(
+                date=date(2025, 9, 15),  # Today + 3 days
+                is_on_call=True,
+                is_public_holiday=False,
+                description="On-call day"
+            ),
+            HospitalDay(
+                date=date(2025, 9, 25),  # Christmas
+                is_on_call=False,
+                is_public_holiday=True,
+                description="Christmas Day"
+            ),
+            HospitalDay(
+                date=date(2025, 10, 1),  # New Year
+                is_on_call=False,
+                is_public_holiday=True,
+                description="New Year's Day"
+            )
+        ]
+        
+        for hospital_day in hospital_days:
+            if not HospitalDay.query.filter_by(date=hospital_day.date).first():
+                db.session.add(hospital_day)
+        
+        db.session.commit()
+        
+        print("Mock data added successfully!")
+
 
 def create_tables():
     """Create database tables"""
@@ -1123,113 +1184,6 @@ def update_profile():
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
-
-def add_mock_data():
-    """Add mock data for testing"""
-    # Add mock doctors if none exist
-    if Doctor.query.count() == 0:
-        # Manager
-        manager = Doctor(
-            first_name="John",
-            last_name="Manager",
-            username="manager",
-            email="manager@hospital.com",
-            rank=RankEnum.CONSULTANT,
-            category=CategoryEnum.SENIOR,
-            specialization=SpecializationEnum.CARDIOLOGY,
-            is_new=False
-        )
-        manager.set_password("password123")
-        
-        # Senior Doctor
-        senior_doc = Doctor(
-            first_name="Sarah",
-            last_name="Senior",
-            username="senior",
-            email="senior@hospital.com",
-            rank=RankEnum.CONSULTANT,
-            category=CategoryEnum.JUNIOR,
-            specialization=SpecializationEnum.THORACIC,
-            is_new=False
-        )
-        senior_doc.set_password("password123")
-        
-        # Junior Doctor
-        junior_doc = Doctor(
-            first_name="Mike",
-            last_name="Junior",
-            username="junior",
-            email="junior@hospital.com",
-            rank=RankEnum.RESIDENT,
-            category=CategoryEnum.JUNIOR,
-            specialization=SpecializationEnum.GENERAL,
-            is_new=True
-        )
-        junior_doc.set_password("password123")
-        
-        # Viewer role (receptionist/viewer)
-        viewer = Doctor(
-            first_name="Emma",
-            last_name="Viewer",
-            username="viewer",
-            email="viewer@hospital.com",
-            rank=RankEnum.RESIDENT,
-            category=CategoryEnum.JUNIOR,  # We'll handle viewer in frontend logic
-            specialization=SpecializationEnum.GENERAL,
-            is_new=False
-        )
-        viewer.set_password("password123")
-        
-        # Create list to hold all doctors
-        all_doctors = [manager, senior_doc, junior_doc, viewer]
-        
-        # add 9 more senior doctors
-        for i in range(1, 10):
-            doc = Doctor(
-                first_name=f"Senior{i}",
-                last_name="Doctor",
-                username=f"senior{i}",
-                email=f"senior{i}@hospital.com",
-                rank=RankEnum.CONSULTANT,
-                category=CategoryEnum.SENIOR,
-                specialization=SpecializationEnum.GENERAL,
-                is_new=False
-            )
-            doc.set_password("password123")
-            all_doctors.append(doc)
-
-        db.session.add_all(all_doctors)
-        db.session.commit()
-        
-        # Add some mock hospital days
-        hospital_days = [
-            HospitalDay(
-                date=date(2025, 9, 15),  # Today + 3 days
-                is_on_call=True,
-                is_public_holiday=False,
-                description="On-call day"
-            ),
-            HospitalDay(
-                date=date(2025, 9, 25),  # Christmas
-                is_on_call=False,
-                is_public_holiday=True,
-                description="Christmas Day"
-            ),
-            HospitalDay(
-                date=date(2025, 10, 1),  # New Year
-                is_on_call=False,
-                is_public_holiday=True,
-                description="New Year's Day"
-            )
-        ]
-        
-        for hospital_day in hospital_days:
-            if not HospitalDay.query.filter_by(date=hospital_day.date).first():
-                db.session.add(hospital_day)
-        
-        db.session.commit()
-        
-        print("Mock data added successfully!")
 
 
 # Initialize database tables on startup

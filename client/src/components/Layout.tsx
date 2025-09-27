@@ -62,7 +62,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 src="/logo.jpg" 
                 alt="Hospital Logo" 
                 className="me-2"
-                style={{height: '80px', width: '260px'}}
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.style.display = 'none';
@@ -92,7 +91,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                         className="me-2"
                       />
                     )}
-                    {user.firstName} {user.lastName}
+                    <span className="d-none d-sm-inline">{user.firstName} {user.lastName}</span>
+                    <span className="d-sm-none">{user.firstName}</span>
                   </Dropdown.Toggle>
                   
                   <Dropdown.Menu>
@@ -118,7 +118,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </Navbar>
       )}
       
-      <Container className={isAuthPage ? "" : "py-4"}>
+      <Container fluid className={isAuthPage ? "" : "py-4"} style={{ maxWidth: isAuthPage ? 'none' : '1200px' }}>
         {children}
       </Container>
     </div>

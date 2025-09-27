@@ -95,7 +95,7 @@ const Profile: React.FC = () => {
       {error && <Alert variant="danger">{error}</Alert>}
 
       <Row>
-        <Col md={8}>
+        <Col xs={12} lg={8}>
           <Card className="dashboard-card">
             <Card.Header className="d-flex justify-content-between align-items-center">
               <h5 className="mb-0">Personal Information</h5>
@@ -121,7 +121,7 @@ const Profile: React.FC = () => {
             <Card.Body>
               <Form onSubmit={handleSubmit}>
                 <Row>
-                  <Col md={6}>
+                                    <Col xs={12} sm={6}>
                     <Form.Group className="mb-3">
                       <Form.Label>First Name</Form.Label>
                       <Form.Control
@@ -129,12 +129,11 @@ const Profile: React.FC = () => {
                         name="firstName"
                         value={formData.firstName}
                         onChange={handleChange}
-                        disabled={!editing}
                         required
                       />
                     </Form.Group>
                   </Col>
-                  <Col md={6}>
+                  <Col xs={12} sm={6}>
                     <Form.Group className="mb-3">
                       <Form.Label>Last Name</Form.Label>
                       <Form.Control
@@ -227,7 +226,7 @@ const Profile: React.FC = () => {
           </Card>
         </Col>
 
-        <Col md={4}>
+        <Col xs={12} lg={4}>
           <Card className="dashboard-card">
             <Card.Header>
               <h5 className="mb-0">Profile Photo</h5>
@@ -286,10 +285,10 @@ const Profile: React.FC = () => {
                 <strong>Last updated:</strong><br />
                 {user?.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : 'Unknown'}
               </p>
-              <p className="mb-0">
+              {/* <p className="mb-0">
                 <strong>User ID:</strong><br />
                 <small className="text-muted">{user?.id}</small>
-              </p>
+              </p> */}
             </Card.Body>
           </Card>
         </Col>

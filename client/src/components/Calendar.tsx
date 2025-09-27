@@ -218,6 +218,85 @@ const Calendar: React.FC = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
   };
 
+  const renderMobileCalendarView = () => {
+    // Get all days in current month
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const today = new Date();
+    
+    const days = [];
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month, day);
+      const dateStr = date.toISOString().split('T')[0];
+      const dayData = calendarDays.find(d => d.date === dateStr) || { date: dateStr, isOnCall: false, isPublicHoliday: false };
+      days.push({ ...dayData, dayNumber: day, dayOfWeek: date.getDay() });
+    }
+
+    return (
+      <div className="mobile-calendar-view">
+        {days.map((day) => {
+          const availableDoctors = getAvailableDoctors(day.date);
+          const isToday = new Date(day.date).toDateString() === today.toDateString();
+          const isWeekend = day.dayOfWeek === 0 || day.dayOfWeek === 6;
+          const isUnavailable = unavailableDays.has(day.date);
+          const isHoliday = holidayDays.has(day.date);
+          const isOnCall = day.isOnCall;
+          
+          let dayClasses = 'mobile-calendar-day';
+          if (isToday) dayClasses += ' today';
+          if (isWeekend) dayClasses += ' weekend';
+          if (isUnavailable) dayClasses += ' unavailable';
+          if (isHoliday) dayClasses += ' holiday';
+          if (isOnCall) dayClasses += ' oncall';
+
+          const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+          return (
+            <div 
+              key={day.date} 
+              className={dayClasses}
+              onClick={() => handleDayClick(day.date)}
+              style={{ cursor: (user?.role !== 'viewer' && isEditMode) ? 'pointer' : 'default' }}
+            >
+              <div className="mobile-day-left">
+                <div className="mobile-day-number">{day.dayNumber}</div>
+                <div className="mobile-day-name">{dayNames[day.dayOfWeek]}</div>
+              </div>
+              
+              <div className="mobile-day-content">
+                <div className="mobile-day-indicators">
+                  {isUnavailable && <span className="mobile-indicator" style={{backgroundColor: '#ffebee', color: '#c62828'}}>Unavailable</span>}
+                  {isHoliday && <span className="mobile-indicator" style={{backgroundColor: '#fff3e0', color: '#ef6c00'}}>Holiday</span>}
+                  {isOnCall && <span className="mobile-indicator" style={{backgroundColor: '#e3f2fd', color: '#1976d2'}}>On Call</span>}
+                  {day.isPublicHoliday && <span className="mobile-indicator" style={{backgroundColor: '#fff3e0', color: '#ef6c00'}}>Public Holiday</span>}
+                </div>
+                
+                {availableDoctors.length > 0 ? (
+                  <div className="mobile-available-doctors">
+                    {availableDoctors.slice(0, 6).map((doctor) => (
+                      <span 
+                        key={doctor.id} 
+                        className={`mobile-doctor-chip ${user?.id === doctor.id ? 'current-user' : ''}`}
+                      >
+                        {doctor.fullName}
+                      </span>
+                    ))}
+                    {availableDoctors.length > 6 && (
+                      <span className="mobile-doctor-chip">+{availableDoctors.length - 6} more</span>
+                    )}
+                  </div>
+                ) : (
+                  <div className="mobile-no-doctors">No doctors available</div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   if (loading) {
     return <LoadingSpinner message="Loading calendar..." />;
   }
@@ -240,15 +319,19 @@ const Calendar: React.FC = () => {
             </Alert>
           )}
           {(user?.role === 'doctor' || user?.role === 'manager') && (
-            <Alert variant={isEditMode ? "warning" : "success"} className="d-flex justify-content-between align-items-center">
-              <div>
+            <Alert variant={isEditMode ? "warning" : "success"} className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center">
+              <div className="mb-2 mb-sm-0">
                 {isEditMode ? (
                   <>
-                    <strong>Edit Mode:</strong> Click on calendar days to set your availability. Don't forget to save your changes!
+                    <strong>Edit Mode:</strong> 
+                    <span className="d-none d-sm-inline"> Click on calendar days to set your availability. Don't forget to save your changes!</span>
+                    <span className="d-sm-none"> Tap days to set availability.</span>
                   </>
                 ) : (
                   <>
-                    <strong>View Mode:</strong> Your availability is set. Click "Edit Availability" to make changes.
+                    <strong>View Mode:</strong> 
+                    <span className="d-none d-sm-inline"> Your availability is set. Click "Edit Availability" to make changes.</span>
+                    <span className="d-sm-none"> Tap to edit availability.</span>
                   </>
                 )}
               </div>
@@ -256,8 +339,10 @@ const Calendar: React.FC = () => {
                 variant={isEditMode ? "success" : "primary"}
                 onClick={() => setIsEditMode(!isEditMode)}
                 size="sm"
+                className="align-self-end align-self-sm-center"
               >
-                {isEditMode ? "Exit Edit Mode" : "Edit Availability"}
+                {isEditMode ? "Exit Edit" : "Edit"}
+                <span className="d-none d-sm-inline"> {isEditMode ? "Mode" : "Availability"}</span>
               </Button>
             </Alert>
           )}
@@ -266,18 +351,31 @@ const Calendar: React.FC = () => {
 
       <Card className="calendar-container">
         <Card.Header className="d-flex justify-content-between align-items-center">
-          <Button variant="outline-primary" onClick={prevMonth}>
-            ← Previous
+          <Button variant="outline-primary" size="sm" onClick={prevMonth}>
+            <span className="d-none d-sm-inline">← Previous</span>
+            <span className="d-sm-none">←</span>
           </Button>
-          <h4 className="mb-0">
-            {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+          <h4 className="mb-0 text-center">
+            <span className="d-none d-sm-inline">
+              {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+            </span>
+            <span className="d-sm-none">
+              {monthNames[currentDate.getMonth()].substring(0, 3)} {currentDate.getFullYear()}
+            </span>
           </h4>
-          <Button variant="outline-primary" onClick={nextMonth}>
-            Next →
+          <Button variant="outline-primary" size="sm" onClick={nextMonth}>
+            <span className="d-none d-sm-inline">Next →</span>
+            <span className="d-sm-none">→</span>
           </Button>
         </Card.Header>
 
-        <Card.Body className="p-0">
+        {/* Mobile View */}
+        <div className="mobile-calendar-view">
+          {renderMobileCalendarView()}
+        </div>
+
+        {/* Desktop View */}
+        <Card.Body className="p-0 desktop-calendar-view">
           {/* Day names header */}
           <Row className="g-0 bg-light">
             {dayNames.map(dayName => (
@@ -288,78 +386,80 @@ const Calendar: React.FC = () => {
           </Row>
 
           {/* Calendar grid */}
-          {Array.from({ length: 6 }, (_, weekIndex) => (
-            <Row key={weekIndex} className="g-0">
-              {dayNames.map((_, dayIndex) => {
-                const dayData = calendarDays[weekIndex * 7 + dayIndex];
-                if (!dayData) return <Col key={dayIndex}></Col>;
+          <div className="calendar-grid">
+            {Array.from({ length: 6 }, (_, weekIndex) => (
+              <Row key={weekIndex} className="g-0">
+                {dayNames.map((_, dayIndex) => {
+                  const dayData = calendarDays[weekIndex * 7 + dayIndex];
+                  if (!dayData) return <Col key={dayIndex} className="border" style={{ minHeight: '80px' }}></Col>;
 
                 const availableDoctors = getAvailableDoctors(dayData.date);
                 
-                return (
-                  <Col 
-                    key={dayIndex} 
-                    className={getDayClass(dayData)}
-                    onClick={() => handleDayClick(dayData.date)}
-                    style={{ 
-                      minHeight: '80px', 
-                      cursor: (user?.role !== 'viewer' && isEditMode) ? 'pointer' : 'default' 
-                    }}
-                  >
-                    <div className="fw-bold">
-                      {new Date(dayData.date).getDate()}
-                    </div>
-                    
-                    {/* Show available doctors as green circles with initials */}
-                    {availableDoctors.length > 0 && (
-                      <OverlayTrigger
-                        placement="top"
-                        overlay={
-                          <Tooltip id={`tooltip-${dayData.date}`}>
-                            <div className="text-start">
-                              <strong>Available Doctors:</strong>
-                              <br />
-                              {availableDoctors.map((doctor, index) => (
-                                <div key={doctor.id}>
-                                  • {doctor.fullName}
-                                </div>
-                              ))}
-                            </div>
-                          </Tooltip>
-                        }
-                      >
-                        <div className="profile-avatars">
-                          {availableDoctors.slice(0, 4).map((doctor) => (
-                            <div 
-                              key={doctor.id}
-                              className="profile-avatar bg-success text-white"
-                              style={{
-                                width: '20px',
-                                height: '20px',
-                                borderRadius: '50%',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: '8px',
-                                fontWeight: 'bold',
-                                margin: '1px',
-                                cursor: 'pointer'
-                              }}
-                            >
-                              {doctor.initials}
-                            </div>
-                          ))}
-                          {availableDoctors.length > 4 && (
-                            <small className="text-muted d-block">+{availableDoctors.length - 4}</small>
-                          )}
-                        </div>
-                      </OverlayTrigger>
-                    )}
-                  </Col>
-                );
-              })}
-            </Row>
-          ))}
+                  return (
+                    <Col 
+                      key={dayIndex} 
+                      className={getDayClass(dayData)}
+                      onClick={() => handleDayClick(dayData.date)}
+                      style={{ 
+                        minHeight: '80px', 
+                        cursor: (user?.role !== 'viewer' && isEditMode) ? 'pointer' : 'default'
+                      }}
+                    >
+                      <div className="fw-bold">
+                        {new Date(dayData.date).getDate()}
+                      </div>
+                      
+                      {/* Show available doctors as green circles with initials */}
+                      {availableDoctors.length > 0 && (
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={
+                            <Tooltip id={`tooltip-${dayData.date}`}>
+                              <div className="text-start">
+                                <strong>Available Doctors:</strong>
+                                <br />
+                                {availableDoctors.map((doctor, index) => (
+                                  <div key={doctor.id}>
+                                    • {doctor.fullName}
+                                  </div>
+                                ))}
+                              </div>
+                            </Tooltip>
+                          }
+                        >
+                          <div className="profile-avatars">
+                            {availableDoctors.slice(0, 4).map((doctor) => (
+                              <div 
+                                key={doctor.id}
+                                className="profile-avatar bg-success text-white"
+                                style={{
+                                  width: '20px',
+                                  height: '20px',
+                                  borderRadius: '50%',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: '8px',
+                                  fontWeight: 'bold',
+                                  margin: '1px',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                {doctor.initials}
+                              </div>
+                            ))}
+                            {availableDoctors.length > 4 && (
+                              <small className="text-muted d-block">+{availableDoctors.length - 4}</small>
+                            )}
+                          </div>
+                        </OverlayTrigger>
+                      )}
+                    </Col>
+                  );
+                })}
+              </Row>
+            ))}
+          </div>
         </Card.Body>
 
         {(user?.role === 'doctor' || user?.role === 'manager') && (

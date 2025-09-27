@@ -144,74 +144,147 @@ const DoctorsList: React.FC = () => {
         </Card.Header>
         <Card.Body>
           {doctors.length > 0 ? (
-            <Table responsive hover>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>Specialty</th>
-                  <th>Rank</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {doctors.map((doctor) => (
-                  <tr key={doctor.id}>
-                    <td>
-                      <div className="d-flex align-items-center">
-                        {doctor.profilePhoto ? (
-                          <img 
-                            src={doctor.profilePhoto} 
-                            alt="Profile"
-                            className="rounded-circle me-2"
-                            width={32}
-                            height={32}
-                          />
-                        ) : (
-                          <div 
-                            className="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-2"
-                            style={{ width: '32px', height: '32px', fontSize: '12px' }}
-                          >
-                            {doctor.firstName[0]}{doctor.lastName[0]}
+            <>
+              {/* Desktop Table View */}
+              <div className="d-none d-lg-block">
+                <Table responsive hover>
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Role</th>
+                      <th>Specialty</th>
+                      <th>Rank</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {doctors.map((doctor) => (
+                      <tr key={doctor.id}>
+                        <td>
+                          <div className="d-flex align-items-center">
+                            {doctor.profilePhoto ? (
+                              <img 
+                                src={doctor.profilePhoto} 
+                                alt="Profile"
+                                className="rounded-circle me-2"
+                                width={32}
+                                height={32}
+                              />
+                            ) : (
+                              <div 
+                                className="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-2"
+                                style={{ width: '32px', height: '32px', fontSize: '12px' }}
+                              >
+                                {doctor.firstName[0]}{doctor.lastName[0]}
+                              </div>
+                            )}
+                            <div>
+                              <strong>{doctor.firstName} {doctor.lastName}</strong>
+                              <br />
+                              <small className="text-muted">{doctor.username}</small>
+                            </div>
                           </div>
-                        )}
-                        <div>
-                          <strong>{doctor.firstName} {doctor.lastName}</strong>
-                          <br />
-                          <small className="text-muted">{doctor.username}</small>
+                        </td>
+                        <td>{doctor.email}</td>
+                        <td>
+                          <Badge bg={doctor.role === 'manager' ? 'primary' : 'secondary'}>
+                            {doctor.role}
+                          </Badge>
+                        </td>
+                        <td>{doctor.specialty || <span className="text-muted">Not specified</span>}</td>
+                        <td>{doctor.rank || <span className="text-muted">Not specified</span>}</td>
+                        <td>
+                          <Button 
+                            variant="outline-primary" 
+                            size="sm" 
+                            onClick={() => handleEdit(doctor)}
+                            className="me-2"
+                          >
+                            Edit
+                          </Button>
+                          <Button 
+                            variant="outline-danger" 
+                            size="sm" 
+                            onClick={() => handleDelete(doctor.id)}
+                          >
+                            Delete
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="d-lg-none">
+                {doctors.map((doctor) => (
+                  <Card key={doctor.id} className="doctor-list-item mb-3">
+                    <Card.Body>
+                      <div className="d-flex align-items-start justify-content-between">
+                        <div className="d-flex align-items-center flex-grow-1">
+                          {doctor.profilePhoto ? (
+                            <img 
+                              src={doctor.profilePhoto} 
+                              alt="Profile"
+                              className="rounded-circle me-3"
+                              width={40}
+                              height={40}
+                            />
+                          ) : (
+                            <div 
+                              className="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-3"
+                              style={{ width: '40px', height: '40px', fontSize: '14px' }}
+                            >
+                              {doctor.firstName[0]}{doctor.lastName[0]}
+                            </div>
+                          )}
+                          <div className="flex-grow-1">
+                            <h6 className="mb-1">{doctor.firstName} {doctor.lastName}</h6>
+                            <small className="text-muted d-block">{doctor.username}</small>
+                            <small className="text-muted">{doctor.email}</small>
+                          </div>
                         </div>
+                        <Badge bg={doctor.role === 'manager' ? 'primary' : 'secondary'} className="ms-2">
+                          {doctor.role}
+                        </Badge>
                       </div>
-                    </td>
-                    <td>{doctor.email}</td>
-                    <td>
-                      <Badge bg={doctor.role === 'manager' ? 'primary' : 'secondary'}>
-                        {doctor.role}
-                      </Badge>
-                    </td>
-                    <td>{doctor.specialty || <span className="text-muted">Not specified</span>}</td>
-                    <td>{doctor.rank || <span className="text-muted">Not specified</span>}</td>
-                    <td>
-                      <Button 
-                        variant="outline-primary" 
-                        size="sm" 
-                        onClick={() => handleEdit(doctor)}
-                        className="me-2"
-                      >
-                        Edit
-                      </Button>
-                      <Button 
-                        variant="outline-danger" 
-                        size="sm" 
-                        onClick={() => handleDelete(doctor.id)}
-                      >
-                        Delete
-                      </Button>
-                    </td>
-                  </tr>
+                      
+                      <Row className="mt-3">
+                        <Col xs={6}>
+                          <small className="text-muted">Specialty:</small>
+                          <div>{doctor.specialty || <span className="text-muted">Not specified</span>}</div>
+                        </Col>
+                        <Col xs={6}>
+                          <small className="text-muted">Rank:</small>
+                          <div>{doctor.rank || <span className="text-muted">Not specified</span>}</div>
+                        </Col>
+                      </Row>
+                      
+                      <div className="d-flex gap-2 mt-3">
+                        <Button 
+                          variant="outline-primary" 
+                          size="sm" 
+                          onClick={() => handleEdit(doctor)}
+                          className="flex-grow-1"
+                        >
+                          Edit
+                        </Button>
+                        <Button 
+                          variant="outline-danger" 
+                          size="sm" 
+                          onClick={() => handleDelete(doctor.id)}
+                          className="flex-grow-1"
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </Card.Body>
+                  </Card>
                 ))}
-              </tbody>
-            </Table>
+              </div>
+            </>
           ) : (
             <Alert variant="info">
               No doctors found in the system.

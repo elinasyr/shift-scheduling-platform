@@ -6,6 +6,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #f8f9fa;
+  font-size: 16px;
+  line-height: 1.5;
 }
 
 code {
@@ -19,6 +21,7 @@ code {
   display: flex;
   align-items: center;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 15px;
 }
 
 .auth-card {
@@ -26,6 +29,21 @@ code {
   border: none;
   border-radius: 15px;
   padding: 30px;
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Mobile responsive auth styles */
+@media (max-width: 576px) {
+  .auth-card {
+    padding: 20px;
+    border-radius: 10px;
+    margin: 10px;
+  }
+  
+  .auth-container {
+    padding: 10px;
+  }
 }
 
 .auth-logo {
@@ -47,6 +65,15 @@ code {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   padding: 20px;
   margin: 20px 0;
+}
+
+/* Mobile responsive calendar styles */
+@media (max-width: 768px) {
+  .calendar-container {
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 6px;
+  }
 }
 
 .availability-day {
@@ -107,6 +134,27 @@ code {
 .navbar-brand img {
   height: 80px;
   width: 260px;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Mobile navbar styles */
+@media (max-width: 768px) {
+  .navbar-brand img {
+    height: 50px;
+    width: auto;
+    max-width: 200px;
+  }
+  
+  .navbar-toggler {
+    padding: 4px 8px;
+    font-size: 1rem;
+    border: 1px solid #dee2e6;
+  }
+  
+  .navbar-collapse {
+    margin-top: 10px;
+  }
 }
 
 .auth-container {
@@ -170,6 +218,15 @@ code {
   border: none;
 }
 
+/* Mobile responsive dashboard styles */
+@media (max-width: 768px) {
+  .dashboard-card {
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+  }
+}
+
 .schedule-day {
   border: 1px solid #dee2e6;
   border-radius: 4px;
@@ -179,6 +236,134 @@ code {
   background: #fff;
   cursor: pointer;
   transition: all 0.2s ease;
+}
+
+/* Google Calendar style mobile calendar */
+@media (max-width: 768px) {
+  .schedule-day {
+    padding: 4px;
+    margin: 1px;
+    min-height: 50px;
+    font-size: 0.8rem;
+  }
+  
+  /* Mobile calendar - Google Calendar style */
+  .mobile-calendar-view {
+    display: block !important;
+  }
+  
+  .desktop-calendar-view {
+    display: none !important;
+  }
+  
+  .mobile-calendar-day {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e0e0e0;
+    background: white;
+    margin-bottom: 0;
+  }
+  
+  .mobile-calendar-day:hover {
+    background-color: #f5f5f5;
+  }
+  
+  .mobile-day-left {
+    width: 60px;
+    text-align: center;
+    margin-right: 16px;
+    flex-shrink: 0;
+  }
+  
+  .mobile-day-number {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #333;
+    line-height: 1.2;
+  }
+  
+  .mobile-day-name {
+    font-size: 0.75rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .mobile-day-content {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .mobile-day-indicators {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 4px;
+  }
+  
+  .mobile-indicator {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 500;
+    text-transform: uppercase;
+  }
+  
+  .mobile-available-doctors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 4px;
+  }
+  
+  .mobile-doctor-chip {
+    background: #e8f5e8;
+    color: #2e7d32;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 500;
+  }
+  
+  .mobile-doctor-chip.current-user {
+    background: #1976d2;
+    color: white;
+  }
+  
+  .mobile-no-doctors {
+    color: #999;
+    font-size: 0.75rem;
+    font-style: italic;
+  }
+  
+  /* Today highlighting */
+  .mobile-calendar-day.today {
+    background: #fff3e0;
+    border-left: 4px solid #ff9800;
+  }
+  
+  .mobile-calendar-day.today .mobile-day-number {
+    color: #ff9800;
+    font-weight: 600;
+  }
+  
+  /* Weekend styling */
+  .mobile-calendar-day.weekend {
+    background: #fafafa;
+  }
+  
+  /* Special day indicators */
+  .mobile-calendar-day.unavailable {
+    background: #ffebee;
+  }
+  
+  .mobile-calendar-day.holiday {
+    background: #fff3e0;
+  }
+  
+  .mobile-calendar-day.oncall {
+    border-left: 4px solid #2196f3;
+  }
 }
 
 .schedule-day:hover {
@@ -210,4 +395,306 @@ code {
   border-radius: 12px;
   font-size: 12px;
   font-weight: 600;
+}
+
+/* =================================
+   MOBILE RESPONSIVE STYLES
+   ================================= */
+
+/* Base mobile styles */
+@media (max-width: 576px) {
+  /* Container adjustments */
+  .container {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  
+  /* Form controls */
+  .form-control {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 10px 12px;
+  }
+  
+  /* Buttons */
+  .btn {
+    padding: 10px 20px;
+    font-size: 0.95rem;
+  }
+  
+  .btn-sm {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+  
+  /* Cards */
+  .card {
+    border-radius: 6px;
+  }
+  
+  .card-body {
+    padding: 15px;
+  }
+  
+  /* Tables - make them horizontally scrollable */
+  .table-responsive {
+    font-size: 0.85rem;
+  }
+  
+  /* Modal adjustments */
+  .modal-dialog {
+    margin: 10px;
+  }
+  
+  .modal-content {
+    border-radius: 8px;
+  }
+  
+  /* Doctor list items */
+  .doctor-list-item {
+    padding: 12px;
+    margin-bottom: 8px;
+  }
+  
+  /* Profile avatars */
+  .profile-avatar {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* Tablet styles */
+@media (min-width: 577px) and (max-width: 768px) {
+  .container {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+  
+  .calendar-container {
+    padding: 18px;
+  }
+  
+  .dashboard-card {
+    padding: 18px;
+  }
+}
+
+/* Large mobile/small tablet styles */
+@media (max-width: 768px) {
+  /* Navigation improvements */
+  .navbar-nav .nav-link {
+    padding: 10px 15px;
+    text-align: center;
+  }
+  
+  /* Dropdown improvements */
+  .dropdown-menu {
+    min-width: 200px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Desktop calendar should be hidden on mobile */
+  .desktop-calendar-view {
+    display: none !important;
+  }
+  
+  .mobile-calendar-view {
+    display: block !important;
+  }
+  
+  /* Form improvements */
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  /* Alert improvements */
+  .alert {
+    padding: 12px;
+    font-size: 0.9rem;
+  }
+  
+  /* Badge improvements */
+  .badge {
+    font-size: 0.75rem;
+    padding: 4px 6px;
+  }
+  
+  /* Spacing adjustments */
+  .py-4 {
+    padding-top: 1.5rem !important;
+    padding-bottom: 1.5rem !important;
+  }
+  
+  .mb-4 {
+    margin-bottom: 1.5rem !important;
+  }
+}
+
+/* Desktop calendar styles */
+@media (min-width: 769px) {
+  .mobile-calendar-view {
+    display: none !important;
+  }
+  
+  .desktop-calendar-view {
+    display: block !important;
+  }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+  .btn, .schedule-day, .doctor-list-item, .availability-day {
+    min-height: 44px; /* iOS recommendation for touch targets */
+  }
+  
+  .nav-link {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Landscape phone styles */
+@media screen and (max-width: 896px) and (orientation: landscape) {
+  .auth-container {
+    padding: 10px;
+  }
+  
+  .auth-card {
+    padding: 20px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  .navbar-brand img {
+    height: 40px;
+  }
+}
+
+/* Ultra-wide mobile styles */
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.5rem;
+  }
+  
+  h2 {
+    font-size: 1.3rem;
+  }
+  
+  h3 {
+    font-size: 1.1rem;
+  }
+  
+  .auth-logo img {
+    height: 50px;
+  }
+  
+  .schedule-day {
+    min-height: 45px;
+    padding: 4px;
+    font-size: 0.7rem;
+  }
+  
+  .doctor-list-item {
+    padding: 10px;
+  }
+  
+  /* Extra small mobile calendar fixes */
+  .calendar-grid .col {
+    min-height: 50px !important;
+    font-size: 0.7rem !important;
+    padding: 1px !important;
+  }
+  
+  .calendar-grid .availability-day {
+    min-height: 50px !important;
+    font-size: 0.7rem !important;
+    padding: 1px !important;
+  }
+  
+  .profile-avatar {
+    width: 10px !important;
+    height: 10px !important;
+    font-size: 5px !important;
+  }
+  
+  /* Manager dashboard buttons fix */
+  .btn-group {
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+  
+  .btn-group .btn {
+    margin-bottom: 5px !important;
+    border-radius: 6px !important;
+  }
+  
+  /* Mobile table improvements */
+  .table-responsive {
+    border: none;
+    box-shadow: none;
+  }
+  
+  .table-responsive table {
+    font-size: 0.8rem;
+  }
+  
+  .table-responsive th,
+  .table-responsive td {
+    padding: 0.5rem 0.3rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+  }
+  
+  /* Make tables stack on very small screens */
+  .mobile-card-table {
+    display: none;
+  }
+}
+
+/* Mobile card-style table for very small screens */
+@media (max-width: 576px) {
+  .table-responsive table {
+    display: none;
+  }
+  
+  .mobile-card-table {
+    display: block;
+  }
+  
+  .mobile-table-card {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    padding: 16px;
+    background: white;
+  }
+  
+  .mobile-table-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .mobile-table-row:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+  
+  .mobile-table-label {
+    font-weight: 600;
+    color: #666;
+    font-size: 0.8rem;
+  }
+  
+  .mobile-table-value {
+    text-align: right;
+    font-size: 0.85rem;
+  }
 }
