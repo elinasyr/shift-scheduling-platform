@@ -68,6 +68,9 @@ export const getAllDoctors = async (): Promise<Doctor[]> => {
     role: doctor.role, // Now mapped correctly in backend
     specialty: doctor.specialty,
     rank: doctor.rank,
+    rotationType: doctor.rotationType,
+    category: doctor.category,
+    isNew: doctor.isNew,
     profilePhoto: doctor.profilePhoto || '',
     availability: [], // Empty for now, will be loaded separately
     createdAt: doctor.createdAt,
@@ -87,6 +90,9 @@ export const getDoctorById = async (id: string): Promise<Doctor> => {
     role: doctor.role,
     specialty: doctor.specialty,
     rank: doctor.rank,
+    rotationType: doctor.rotationType,
+    category: doctor.category,
+    isNew: doctor.isNew,
     profilePhoto: doctor.profilePhoto || '',
     availability: [],
     createdAt: doctor.createdAt,
@@ -106,6 +112,9 @@ export const updateDoctor = async (id: string, doctorData: Partial<Doctor>): Pro
     role: doctor.role,
     specialty: doctor.specialty,
     rank: doctor.rank,
+    rotationType: doctor.rotationType,
+    category: doctor.category,
+    isNew: doctor.isNew,
     profilePhoto: doctor.profilePhoto || '',
     availability: [],
     createdAt: doctor.createdAt,
@@ -136,12 +145,12 @@ export const getDoctorAvailability = async (doctorId: string, startDate: string,
     const start = new Date(startYear, startMonth - 1, startDay); // month is 0-based
     const end = new Date(endYear, endMonth - 1, endDay); // month is 0-based
     
-    console.log('Date range:', { startDate, endDate, start, end });
+    // console.log('Date range:', { startDate, endDate, start, end });
 
     // Use a proper while loop to avoid date increment issues
     const currentDate = new Date(start);
     while (currentDate <= end) {
-      console.log('Processing date:', currentDate, 'vs end:', end);
+      // console.log('Processing date:', currentDate, 'vs end:', end);
       // Format date as YYYY-MM-DD without timezone issues
       const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
       const status = backendData[dateStr] || 'available';

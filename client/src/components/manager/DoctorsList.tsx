@@ -17,8 +17,11 @@ const DoctorsList: React.FC = () => {
     firstName: '',
     lastName: '',
     email: '',
-    specialty: '',
-    rank: '',
+    specialty: 'general' as 'cardiology' | 'thoracic' | 'general',
+    rank: 'junior' as 'junior' | 'senior',
+    rotationType: 'internal' as 'outside' | 'visiting' | 'internal' | 'abroad',
+    category: 'doctor' as 'doctor' | 'manager' | 'viewer',
+    isNew: false,
     role: 'doctor' as 'doctor' | 'manager'
   });
 
@@ -45,8 +48,11 @@ const DoctorsList: React.FC = () => {
       firstName: doctor.firstName,
       lastName: doctor.lastName,
       email: doctor.email,
-      specialty: doctor.specialty || '',
-      rank: doctor.rank || '',
+      specialty: (doctor.specialty as 'cardiology' | 'thoracic' | 'general') || 'general',
+      rank: (doctor.rank as 'junior' | 'senior') || 'junior',
+      rotationType: (doctor.rotationType as 'outside' | 'visiting' | 'internal' | 'abroad') || 'internal',
+      category: (doctor.category as 'doctor' | 'manager' | 'viewer') || 'doctor',
+      isNew: doctor.isNew || false,
       role: doctor.role as 'doctor' | 'manager'
     });
     setShowModal(true);
@@ -61,8 +67,11 @@ const DoctorsList: React.FC = () => {
       firstName: '',
       lastName: '',
       email: '',
-      specialty: '',
-      rank: '',
+      specialty: 'general',
+      rank: 'junior',
+      rotationType: 'internal',
+      category: 'doctor',
+      isNew: false,
       role: 'doctor'
     });
     setError('');
@@ -155,6 +164,8 @@ const DoctorsList: React.FC = () => {
                       <th>Role</th>
                       <th>Specialty</th>
                       <th>Rank</th>
+                      <th>Category</th>
+                      <th>Rotation Type</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
@@ -193,7 +204,18 @@ const DoctorsList: React.FC = () => {
                           </Badge>
                         </td>
                         <td>{doctor.specialty || <span className="text-muted">Not specified</span>}</td>
-                        <td>{doctor.rank || <span className="text-muted">Not specified</span>}</td>
+                        <td>
+                          <Badge bg={doctor.rank === 'senior' ? 'warning' : 'info'}>
+                            {doctor.rank || 'Not set'}
+                          </Badge>
+                          {doctor.isNew && <Badge bg="success" className="ms-1">New</Badge>}
+                        </td>
+                        <td>
+                          <Badge bg={doctor.category === 'manager' ? 'primary' : 'secondary'}>
+                            {doctor.category || 'Not set'}
+                          </Badge>
+                        </td>
+                        <td>{doctor.rotationType || <span className="text-muted">Not specified</span>}</td>
                         <td>
                           <Button 
                             variant="outline-primary" 
@@ -258,7 +280,26 @@ const DoctorsList: React.FC = () => {
                         </Col>
                         <Col xs={6}>
                           <small className="text-muted">Rank:</small>
-                          <div>{doctor.rank || <span className="text-muted">Not specified</span>}</div>
+                          <div>
+                            <Badge bg={doctor.rank === 'senior' ? 'warning' : 'info'}>
+                              {doctor.rank || 'Not set'}
+                            </Badge>
+                            {doctor.isNew && <Badge bg="success" className="ms-1">New</Badge>}
+                          </div>
+                        </Col>
+                      </Row>
+                      <Row className="mt-2">
+                        <Col xs={6}>
+                          <small className="text-muted">Category:</small>
+                          <div>
+                            <Badge bg={doctor.category === 'manager' ? 'primary' : 'secondary'}>
+                              {doctor.category || 'Not set'}
+                            </Badge>
+                          </div>
+                        </Col>
+                        <Col xs={6}>
+                          <small className="text-muted">Rotation Type:</small>
+                          <div>{doctor.rotationType || <span className="text-muted">Not specified</span>}</div>
                         </Col>
                       </Row>
                       
@@ -297,7 +338,7 @@ const DoctorsList: React.FC = () => {
       <Modal show={showModal} onHide={handleClose} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>
-            Edit Doctor: {editingDoctor?.firstName} {editingDoctor?.lastName}
+            Edit information: {editingDoctor?.firstName} {editingDoctor?.lastName}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
@@ -361,27 +402,78 @@ const DoctorsList: React.FC = () => {
               <Col md={6}>
                 <Form.Group className="mb-3">
                   <Form.Label>Specialty</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="specialty"
-                    value={formData.specialty}
+                  <Form.Select 
+                    name="specialty" 
+                    value={formData.specialty} 
                     onChange={handleChange}
-                    placeholder="e.g., Cardiology, Surgery"
-                  />
+                    required
+                  >
+                    <option value="cardiology">Cardiology</option>
+                    <option value="thoracic">Thoracic</option>
+                    <option value="general">General</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Rank (Seniority Level)</Form.Label>
+                  <Form.Select 
+                    name="rank" 
+                    value={formData.rank} 
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="junior">Junior</option>
+                    <option value="senior">Senior</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Category (Access Level)</Form.Label>
+                  <Form.Select 
+                    name="category" 
+                    value={formData.category} 
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="doctor">Doctor</option>
+                    <option value="manager">Manager</option>
+                    <option value="viewer">Viewer</option>
+                  </Form.Select>
                 </Form.Group>
               </Col>
             </Row>
 
             <Form.Group className="mb-3">
-              <Form.Label>Rank</Form.Label>
-              <Form.Control
-                type="text"
-                name="rank"
-                value={formData.rank}
+              <Form.Label>Rotation Type</Form.Label>
+              <Form.Select 
+                name="rotationType" 
+                value={formData.rotationType} 
                 onChange={handleChange}
-                placeholder="e.g., Resident, Attending, Chief"
-              />
+                required
+              >
+                <option value="internal">Regular</option>
+                <option value="visiting">Visiting from other hospital</option>
+                <option value="abroad">Internship abroad</option>
+                <option value="outside">Doctors outside of Attikon</option>
+              </Form.Select>
             </Form.Group>
+
+            {formData.rank === 'junior' && (
+              <Form.Group className="mb-3">
+                <Form.Check
+                  type="checkbox"
+                  name="isNew"
+                  checked={formData.isNew}
+                  onChange={(e) => setFormData(prev => ({ ...prev, isNew: e.target.checked }))}
+                  label="Is New Doctor"
+                />
+              </Form.Group>
+            )}
           </Form>
         </Modal.Body>
         <Modal.Footer>

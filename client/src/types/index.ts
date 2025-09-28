@@ -6,7 +6,10 @@ export interface User {
   username: string;
   role: UserRole;
   specialty?: string;
-  rank?: string;
+  rank?: Rank;
+  rotationType?: RotationType;
+  category?: Category;
+  isNew?: boolean;
   profilePhoto?: string;
   isApproved?: boolean;
   createdAt: string;
@@ -15,11 +18,20 @@ export interface User {
 
 export interface Doctor extends User {
   specialty: string;
-  rank: string;
+  rotationType: RotationType;
+  category: Category;
   availability: DayAvailability[];
 }
 
 export type UserRole = 'doctor' | 'manager' | 'viewer';
+
+export type RotationType = 'outside' | 'visiting' | 'internal' | 'abroad';
+
+export type Rank = 'junior' | 'senior';
+
+export type Category = 'doctor' | 'manager' | 'viewer';
+
+export type Specialty = 'cardiology' | 'thoracic' | 'general';
 
 export interface DayAvailability {
   id: string;
@@ -100,6 +112,8 @@ export interface ScheduleGenerationResult {
 
 export interface ApprovalData {
   role: UserRole;
-  specialty: string;
-  rank: string;
+  specialty: Specialty;
+  rank: Rank;
+  rotationType: RotationType;
+  isNew?: boolean;
 }

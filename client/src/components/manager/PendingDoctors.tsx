@@ -11,7 +11,9 @@ const PendingDoctors: React.FC = () => {
   const [approvalData, setApprovalData] = useState<ApprovalData>({
     role: 'doctor',
     specialty: 'general',
-    rank: 'resident'
+    rank: 'junior',
+    rotationType: 'internal',
+    isNew: false
   });
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState('');
@@ -59,7 +61,9 @@ const PendingDoctors: React.FC = () => {
       setApprovalData({
         role: 'doctor',
         specialty: 'general',
-        rank: 'resident'
+        rank: 'junior',
+        rotationType: 'internal',
+        isNew: false
       });
       
     } catch (error: any) {
@@ -199,15 +203,15 @@ const PendingDoctors: React.FC = () => {
 
               <Form>
                 <Form.Group className="mb-3">
-                  <Form.Label>Role</Form.Label>
+                  <Form.Label>Category</Form.Label>
                   <Form.Select
                     name="role"
                     value={approvalData.role}
                     onChange={handleInputChange}
                     required
                   >
-                    <option value="doctor">Doctor</option>
-                    <option value="manager">Manager</option>
+                    <option value="doctor">Junior</option>
+                    <option value="manager">Senior</option>
                   </Form.Select>
                 </Form.Group>
 
@@ -226,17 +230,31 @@ const PendingDoctors: React.FC = () => {
                 </Form.Group>
 
                 <Form.Group className="mb-3">
-                  <Form.Label>Rank</Form.Label>
+                  <Form.Label>Rotation Type</Form.Label>
                   <Form.Select
-                    name="rank"
-                    value={approvalData.rank}
+                    name="rotationType"
+                    value={approvalData.rotationType}
                     onChange={handleInputChange}
                     required
                   >
-                    <option value="resident">Resident</option>
-                    <option value="consultant">Consultant</option>
+                    <option value="internal">Regular</option>
+                    <option value="visiting">Visiting from other hospital</option>
+                    <option value="abroad">Internship abroad</option>
+                    <option value="outside">Doctors outside of Attikon</option>
                   </Form.Select>
                 </Form.Group>
+
+                {approvalData.role === 'doctor' && (
+                  <Form.Group className="mb-3">
+                    <Form.Check
+                      type="checkbox"
+                      name="isNew"
+                      checked={approvalData.isNew || false}
+                      onChange={(e) => setApprovalData(prev => ({ ...prev, isNew: e.target.checked }))}
+                      label="Is New Doctor"
+                    />
+                  </Form.Group>
+                )}
               </Form>
             </>
           )}

@@ -77,6 +77,14 @@ const Calendar: React.FC = () => {
     const days: CalendarDay[] = [];
     const hospitalDaysMap = new Map(hospitalDaysData.map(day => [day.date, day]));
     
+    // Helper function to format date as YYYY-MM-DD without timezone issues
+    const formatDateLocal = (date: Date): string => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+    
     // Generate 6 weeks (42 days) for the calendar grid
     const firstDay = new Date(startDate);
     firstDay.setDate(1);
@@ -89,7 +97,7 @@ const Calendar: React.FC = () => {
     for (let i = 0; i < 42; i++) {
       const currentDate = new Date(calendarStart);
       currentDate.setDate(calendarStart.getDate() + i);
-      const dateStr = currentDate.toISOString().split('T')[0];
+      const dateStr = formatDateLocal(currentDate);
       const hospitalDay = hospitalDaysMap.get(dateStr);
       
       days.push({
@@ -239,6 +247,14 @@ const Calendar: React.FC = () => {
   };
 
   const renderMobileCalendarView = () => {
+    // Helper function to format date as YYYY-MM-DD without timezone issues
+    const formatDateLocal = (date: Date): string => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+    
     // Get all days in current month
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -248,7 +264,7 @@ const Calendar: React.FC = () => {
     const days = [];
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month, day);
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = formatDateLocal(date);
       const dayData = calendarDays.find(d => d.date === dateStr) || { 
         date: dateStr, 
         isOnCall: false, 

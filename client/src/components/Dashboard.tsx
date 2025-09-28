@@ -107,8 +107,10 @@ const Dashboard: React.FC = () => {
                 <Row>
                   <Col md={6}>
                     <h6>Your Information</h6>
-                    <p className="mb-1"><strong>Specialty:</strong> {user.specialty}</p>
-                    {user.rank && <p className="mb-1"><strong>Rank:</strong> {user.rank}</p>}
+                    <p className="mb-1"><strong>Specialty:</strong> {user.specialty || 'Not specified'}</p>
+                    {user.rotationType && <p className="mb-1"><strong>Rotation Type:</strong> {user.rotationType}</p>}
+                    {user.category && <p className="mb-1"><strong>Category:</strong> {user.category}</p>}
+                    {user.isNew && <p className="mb-1"><Badge bg="success">New Doctor</Badge></p>}
                     <p className="mb-1"><strong>Email:</strong> {user.email}</p>
                   </Col>
                   <Col md={6}>

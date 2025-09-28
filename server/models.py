@@ -6,10 +6,6 @@ import enum
 
 db = SQLAlchemy()
 
-class RankEnum(enum.Enum):
-    RESIDENT = "resident"
-    CONSULTANT = "consultant"
-
 class RotationTypeEnum(enum.Enum):
     OUTSIDE = "outside"
     VISITING = "visiting" 
@@ -21,9 +17,14 @@ class SpecializationEnum(enum.Enum):
     THORACIC = "thoracic" # θχ
     GENERAL = "general" # Other
 
-class CategoryEnum(enum.Enum):
+class RankEnum(enum.Enum):
     JUNIOR = "junior"
     SENIOR = "senior"
+
+class CategoryEnum(enum.Enum):
+    DOCTOR = "doctor"
+    MANAGER = "manager"
+    VIEWER = "viewer"
 
 class AvailabilityEnum(enum.Enum):
     AVAILABLE = "available"
@@ -45,9 +46,10 @@ class Doctor(db.Model):
     username = db.Column(db.String(50), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
-    rank = db.Column(Enum(RankEnum), nullable=True)  # Now nullable, set by manager
+    rotation_type = db.Column(Enum(RotationTypeEnum), nullable=True)  # Now nullable, set by manager
     is_new = db.Column(db.Boolean, default=False)
-    category = db.Column(Enum(CategoryEnum), nullable=True)  # Now nullable, set by manager
+    rank = db.Column(Enum(RankEnum), nullable=True)  # Junior/Senior medical level
+    category = db.Column(Enum(CategoryEnum), nullable=True)  # Manager/Doctor/Viewer access level
     specialization = db.Column(Enum(SpecializationEnum), nullable=True)  # Now nullable, set by manager
     abroad = db.Column(db.Boolean, default=False) # για άσκηση στο εξωτερικό
     visiting = db.Column(db.Boolean, default=False) # εμβολίμοι από άλλα νοσοκομεία
@@ -74,10 +76,12 @@ class Doctor(db.Model):
         # Determine role based on approval status and category
         if not self.is_approved:
             role = 'viewer'  # Unapproved users are viewers
-        elif self.category == CategoryEnum.SENIOR:
+        elif self.category == CategoryEnum.MANAGER:
             role = 'manager'
-        elif self.category == CategoryEnum.JUNIOR:
+        elif self.category == CategoryEnum.DOCTOR:
             role = 'doctor'
+        elif self.category == CategoryEnum.VIEWER:
+            role = 'viewer'
         else:
             role = 'viewer'  # Default fallback
         
@@ -88,18 +92,20 @@ class Doctor(db.Model):
             'username': self.username,
             'email': self.email,
             'role': role,
+            'rotationType': self.rotation_type.value if self.rotation_type else None,
             'rank': self.rank.value if self.rank else None,
             'category': self.category.value if self.category else None,
             'specialty': self.specialization.value if self.specialization else None,
             'specialization': self.specialization.value if self.specialization else None,
             'profilePhoto': self.profile_photo,
+            'isNew': self.is_new,
             'isApproved': self.is_approved,
             'createdAt': self.created_at.isoformat() if self.created_at else None,
             'updatedAt': self.updated_at.isoformat() if self.updated_at else None
         }
         
     def __repr__(self):
-        return f'<Doctor {self.first_name} {self.last_name}, {self.rank.value}>'
+        return f'<Doctor {self.first_name} {self.last_name}, {self.rotation_type.value if self.rotation_type else "No rotation"}>'
 
 class Hospital(db.Model):
     __tablename__ = 'hospitals'

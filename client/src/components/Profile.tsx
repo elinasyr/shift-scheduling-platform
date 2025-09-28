@@ -13,8 +13,11 @@ const Profile: React.FC = () => {
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
     email: user?.email || '',
-    specialty: user?.specialty || '',
-    rank: user?.rank || ''
+    specialty: (user?.specialty as 'cardiology' | 'thoracic' | 'general') || 'general',
+    rank: (user?.rank as 'junior' | 'senior') || 'junior',
+    rotationType: (user?.rotationType as 'outside' | 'visiting' | 'internal' | 'abroad') || 'internal',
+    category: (user?.category as 'doctor' | 'manager' | 'viewer') || 'doctor',
+    isNew: user?.isNew || false
   });
 
   const handleChange = (e: React.ChangeEvent<any>) => {
@@ -34,7 +37,16 @@ const Profile: React.FC = () => {
       setError('');
       setLoading(true);
       
-      await api.updateProfile(formData);
+      // Cast the form data to match the expected types
+      const profileData = {
+        ...formData,
+        specialty: formData.specialty as 'cardiology' | 'thoracic' | 'general',
+        rank: formData.rank as 'junior' | 'senior',
+        rotationType: formData.rotationType as 'outside' | 'visiting' | 'internal' | 'abroad',
+        category: formData.category as 'doctor' | 'manager' | 'viewer'
+      };
+      
+      await api.updateProfile(profileData);
       setMessage('Profile updated successfully!');
       setEditing(false);
       
@@ -54,8 +66,11 @@ const Profile: React.FC = () => {
       firstName: user?.firstName || '',
       lastName: user?.lastName || '',
       email: user?.email || '',
-      specialty: user?.specialty || '',
-      rank: user?.rank || ''
+      specialty: (user?.specialty as 'cardiology' | 'thoracic' | 'general') || 'general',
+      rank: (user?.rank as 'junior' | 'senior') || 'junior',
+      rotationType: (user?.rotationType as 'outside' | 'visiting' | 'internal' | 'abroad') || 'internal',
+      category: (user?.category as 'doctor' | 'manager' | 'viewer') || 'doctor',
+      isNew: user?.isNew || false
     });
     setEditing(false);
     setError('');
@@ -161,34 +176,85 @@ const Profile: React.FC = () => {
                 </Form.Group>
 
                 {(user?.role === 'doctor' || user?.role === 'manager') && (
-                  <Row>
-                    <Col md={6}>
+                  <>
+                    <Row>
+                      <Col md={6}>
+                        <Form.Group className="mb-3">
+                          <Form.Label>Specialty</Form.Label>
+                          <Form.Select
+                            name="specialty"
+                            value={formData.specialty}
+                            onChange={handleChange}
+                            disabled={!editing}
+                          >
+                            <option value="cardiology">Cardiology</option>
+                            <option value="thoracic">Thoracic</option>
+                            <option value="general">General</option>
+                          </Form.Select>
+                        </Form.Group>
+                      </Col>
+                      <Col md={6}>
+                        <Form.Group className="mb-3">
+                          <Form.Label>Rank (Seniority Level)</Form.Label>
+                          <Form.Select
+                            name="rank"
+                            value={formData.rank}
+                            onChange={handleChange}
+                            disabled={!editing}
+                          >
+                            <option value="junior">Junior</option>
+                            <option value="senior">Senior</option>
+                          </Form.Select>
+                        </Form.Group>
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col md={6}>
+                        <Form.Group className="mb-3">
+                          <Form.Label>Category (Access Level)</Form.Label>
+                          <Form.Select
+                            name="category"
+                            value={formData.category}
+                            onChange={handleChange}
+                            disabled={!editing}
+                          >
+                            <option value="doctor">Doctor</option>
+                            <option value="manager">Manager</option>
+                            <option value="viewer">Viewer</option>
+                          </Form.Select>
+                        </Form.Group>
+                      </Col>
+                      <Col md={6}>
+                        <Form.Group className="mb-3">
+                          <Form.Label>Rotation Type</Form.Label>
+                          <Form.Select
+                            name="rotationType"
+                            value={formData.rotationType}
+                            onChange={handleChange}
+                            disabled={!editing}
+                          >
+                            <option value="">Select rotation type...</option>
+                            <option value="internal">Regular</option>
+                            <option value="visiting">Visiting from other hospital</option>
+                            <option value="abroad">Internship abroad</option>
+                            <option value="outside">Doctors outside of Attikon</option>
+                          </Form.Select>
+                        </Form.Group>
+                      </Col>
+                    </Row>
+                    {formData.rank === 'junior' && (
                       <Form.Group className="mb-3">
-                        <Form.Label>Specialty</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="specialty"
-                          value={formData.specialty}
-                          onChange={handleChange}
+                        <Form.Check
+                          type="checkbox"
+                          name="isNew"
+                          checked={formData.isNew}
+                          onChange={(e) => setFormData(prev => ({ ...prev, isNew: e.target.checked }))}
                           disabled={!editing}
-                          placeholder="e.g., Cardiology, Surgery"
+                          label="Is New Doctor"
                         />
                       </Form.Group>
-                    </Col>
-                    <Col md={6}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Rank</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="rank"
-                          value={formData.rank}
-                          onChange={handleChange}
-                          disabled={!editing}
-                          placeholder="e.g., Resident, Attending"
-                        />
-                      </Form.Group>
-                    </Col>
-                  </Row>
+                    )}
+                  </>
                 )}
 
                 <Row>

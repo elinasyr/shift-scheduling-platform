@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request, g, make_response
 from flask_cors import CORS
 from models import (db, Doctor, Hospital, Shift, Availability, Holiday, HospitalDay, UserSession,
-                   RankEnum, CategoryEnum, AvailabilityEnum, HolidayType, SpecializationEnum)
+                   RotationTypeEnum, RankEnum, CategoryEnum, AvailabilityEnum, HolidayType, SpecializationEnum)
 from rules_or import SchedulingSolver
 import os
 import secrets
@@ -40,42 +40,45 @@ def add_mock_data():
     """Add mock data for testing"""
     # Add mock doctors if none exist
     if Doctor.query.count() == 0:
-        # Manager
+        # Manager (Senior level with Manager access)
         manager = Doctor(
             first_name="John",
             last_name="Manager",
             username="manager",
             email="manager@hospital.com",
-            rank=RankEnum.CONSULTANT,
-            category=CategoryEnum.SENIOR,
+            rotation_type=RotationTypeEnum.INTERNAL,
+            rank=RankEnum.SENIOR,
+            category=CategoryEnum.MANAGER,
             specialization=SpecializationEnum.CARDIOLOGY,
             is_new=False,
             is_approved=True  # Manager is pre-approved
         )
         manager.set_password("password123")
         
-        # Senior Doctor
+        # Senior Doctor (Senior level with Doctor access)
         senior_doc = Doctor(
             first_name="Sarah",
             last_name="Senior",
             username="senior",
             email="senior@hospital.com",
-            rank=RankEnum.CONSULTANT,
-            category=CategoryEnum.JUNIOR,
+            rotation_type=RotationTypeEnum.INTERNAL,
+            rank=RankEnum.SENIOR,
+            category=CategoryEnum.DOCTOR,
             specialization=SpecializationEnum.THORACIC,
             is_new=False,
             is_approved=True  # Pre-approved
         )
         senior_doc.set_password("password123")
         
-        # Junior Doctor
+        # Junior Doctor (Junior level with Doctor access)
         junior_doc = Doctor(
             first_name="Mike",
             last_name="Junior",
             username="junior",
             email="junior@hospital.com",
-            rank=RankEnum.RESIDENT,
-            category=CategoryEnum.JUNIOR,
+            rotation_type=RotationTypeEnum.INTERNAL,
+            rank=RankEnum.JUNIOR,
+            category=CategoryEnum.DOCTOR,
             specialization=SpecializationEnum.GENERAL,
             is_new=True,
             is_approved=True  # Pre-approved
@@ -88,6 +91,7 @@ def add_mock_data():
             last_name="Viewer",
             username="viewer",
             email="viewer@hospital.com",
+            rotation_type=None,  # Will be set by manager
             rank=None,  # Will be set by manager
             category=None,  # Will be set by manager
             specialization=None,  # Will be set by manager
@@ -99,15 +103,16 @@ def add_mock_data():
         # Create list to hold all doctors
         all_doctors = [manager, senior_doc, junior_doc, viewer]
         
-        # add 9 more senior doctors
+        # add 9 more doctors (mix of junior and senior)
         for i in range(1, 10):
             doc = Doctor(
-                first_name=f"Senior{i}",
-                last_name="Doctor",
-                username=f"senior{i}",
-                email=f"senior{i}@hospital.com",
-                rank=RankEnum.CONSULTANT,
-                category=CategoryEnum.SENIOR,
+                first_name=f"Doctor{i}",
+                last_name="Test",
+                username=f"doctor{i}",
+                email=f"doctor{i}@hospital.com",
+                rotation_type=RotationTypeEnum.INTERNAL,
+                rank=RankEnum.SENIOR if i % 2 == 0 else RankEnum.JUNIOR,  # Mix of senior and junior
+                category=CategoryEnum.DOCTOR,
                 specialization=SpecializationEnum.GENERAL,
                 is_new=False,
                 is_approved=True  # Pre-approved
@@ -365,6 +370,7 @@ def signup():
             last_name=data['lastName'],
             username=data['username'],
             email=data['email'],
+            rotation_type=None,  # Will be set by manager
             rank=None,  # Will be set by manager
             category=None,  # Will be set by manager
             specialization=None,  # Will be set by manager
@@ -475,13 +481,16 @@ def get_doctor(doctor_id):
 def update_doctor(doctor_id):
     """Update a doctor's information"""
     try:
+        print('hey')
         # Check if current user is manager or updating own profile
-        if g.current_user.category != CategoryEnum.SENIOR and g.current_user.id != doctor_id:
+        print(g.current_user.category)
+        if g.current_user.category != CategoryEnum.MANAGER and g.current_user.id != doctor_id:
+            print('Unauthorized access attempt by user:', g.current_user.id)
             return jsonify({'error': 'Unauthorized'}), 403
-        
+        print('hey2')
         doctor = Doctor.query.get_or_404(doctor_id)
         data = request.json
-        
+        print(data)
         # Update allowed fields
         if 'firstName' in data:
             doctor.first_name = data['firstName']
@@ -491,9 +500,20 @@ def update_doctor(doctor_id):
             doctor.email = data['email']
         
         # Only managers can update role and category
-        if g.current_user.category == CategoryEnum.SENIOR:
+        if g.current_user.category == CategoryEnum.MANAGER:
             if 'role' in data:
-                doctor.category = CategoryEnum.SENIOR if data['role'] == 'manager' else CategoryEnum.JUNIOR
+                role_map = {
+                    'manager': CategoryEnum.MANAGER,
+                    'doctor': CategoryEnum.DOCTOR,
+                    'viewer': CategoryEnum.VIEWER
+                }
+                doctor.category = role_map.get(data['role'].lower(), CategoryEnum.DOCTOR)
+            if 'rank' in data:
+                rank_map = {
+                    'junior': RankEnum.JUNIOR,
+                    'senior': RankEnum.SENIOR
+                }
+                doctor.rank = rank_map.get(data['rank'].lower(), RankEnum.JUNIOR)
             if 'specialty' in data:
                 specialty_map = {
                     'cardiology': SpecializationEnum.CARDIOLOGY,
@@ -501,12 +521,16 @@ def update_doctor(doctor_id):
                     'general': SpecializationEnum.GENERAL
                 }
                 doctor.specialization = specialty_map.get(data['specialty'].lower(), SpecializationEnum.GENERAL)
-            if 'rank' in data:
-                rank_map = {
-                    'resident': RankEnum.RESIDENT,
-                    'consultant': RankEnum.CONSULTANT
+            if 'rotationType' in data:
+                rotation_map = {
+                    'outside': RotationTypeEnum.OUTSIDE,
+                    'visiting': RotationTypeEnum.VISITING,
+                    'internal': RotationTypeEnum.INTERNAL,
+                    'abroad': RotationTypeEnum.ABROAD
                 }
-                doctor.rank = rank_map.get(data['rank'].lower(), RankEnum.RESIDENT)
+                doctor.rotation_type = rotation_map.get(data['rotationType'].lower(), RotationTypeEnum.INTERNAL)
+            if 'isNew' in data:
+                doctor.is_new = bool(data['isNew'])
         
         doctor.updated_at = datetime.utcnow()
         db.session.commit()
@@ -522,7 +546,7 @@ def update_doctor(doctor_id):
 def delete_doctor(doctor_id):
     """Delete a doctor (manager only)"""
     try:
-        if g.current_user.category != CategoryEnum.SENIOR:
+        if g.current_user.category != CategoryEnum.MANAGER:
             return jsonify({'error': 'Unauthorized'}), 403
         
         doctor = Doctor.query.get_or_404(doctor_id)
@@ -540,20 +564,32 @@ def delete_doctor(doctor_id):
 def approve_doctor(doctor_id):
     """Approve a doctor and set their role/specialty/rank (manager only)"""
     try:
-        if g.current_user.category != CategoryEnum.SENIOR:
+        if g.current_user.category != CategoryEnum.MANAGER:
             return jsonify({'error': 'Unauthorized'}), 403
         
         doctor = Doctor.query.get_or_404(doctor_id)
         data = request.json
         
         # Validate required fields for approval
-        required_fields = ['role', 'specialty', 'rank']
+        required_fields = ['role', 'specialty', 'rotationType', 'rank']
         for field in required_fields:
             if field not in data or not data[field]:
                 return jsonify({'error': f'{field} is required for approval'}), 400
         
-        # Set the doctor's role, specialty, and rank
-        doctor.category = CategoryEnum.SENIOR if data['role'] == 'manager' else CategoryEnum.JUNIOR
+        # Set the doctor's category (access level)
+        role_map = {
+            'manager': CategoryEnum.MANAGER,
+            'doctor': CategoryEnum.DOCTOR,
+            'viewer': CategoryEnum.VIEWER
+        }
+        doctor.category = role_map.get(data['role'].lower(), CategoryEnum.DOCTOR)
+        
+        # Set the doctor's rank (seniority level)
+        rank_map = {
+            'junior': RankEnum.JUNIOR,
+            'senior': RankEnum.SENIOR
+        }
+        doctor.rank = rank_map.get(data['rank'].lower(), RankEnum.JUNIOR)
         
         specialty_map = {
             'cardiology': SpecializationEnum.CARDIOLOGY,
@@ -562,11 +598,16 @@ def approve_doctor(doctor_id):
         }
         doctor.specialization = specialty_map.get(data['specialty'].lower(), SpecializationEnum.GENERAL)
         
-        rank_map = {
-            'resident': RankEnum.RESIDENT,
-            'consultant': RankEnum.CONSULTANT
+        rotation_map = {
+            'outside': RotationTypeEnum.OUTSIDE,
+            'visiting': RotationTypeEnum.VISITING,
+            'internal': RotationTypeEnum.INTERNAL,
+            'abroad': RotationTypeEnum.ABROAD
         }
-        doctor.rank = rank_map.get(data['rank'].lower(), RankEnum.RESIDENT)
+        doctor.rotation_type = rotation_map.get(data['rotationType'].lower(), RotationTypeEnum.INTERNAL)
+        
+        if 'isNew' in data:
+            doctor.is_new = bool(data['isNew'])
         
         # Approve the doctor
         doctor.is_approved = True
@@ -588,7 +629,7 @@ def approve_doctor(doctor_id):
 def get_pending_doctors():
     """Get all pending (unapproved) doctors (manager only)"""
     try:
-        if g.current_user.category != CategoryEnum.SENIOR:
+        if g.current_user.category != CategoryEnum.MANAGER:
             return jsonify({'error': 'Unauthorized'}), 403
         
         pending_doctors = Doctor.query.filter_by(is_approved=False).all()
@@ -631,7 +672,7 @@ def get_hospital_schedule():
 def update_hospital_schedule():
     """Update hospital schedule (manager only)"""
     try:
-        if g.current_user.category != CategoryEnum.SENIOR:
+        if g.current_user.category != CategoryEnum.MANAGER:
             return jsonify({'error': 'Unauthorized'}), 403
         
         data = request.json
@@ -842,7 +883,7 @@ def get_all_availability():
 def get_availability_summary():
     """Get availability summary for managers"""
     try:
-        if g.current_user.category != CategoryEnum.SENIOR:
+        if g.current_user.category != CategoryEnum.MANAGER:
             return jsonify({'error': 'Unauthorized'}), 403
         
         start_date_str = request.args.get('startDate')
@@ -918,7 +959,7 @@ def get_hospital_days():
 def create_hospital_day():
     """Create or update a hospital day"""
     try:
-        if g.current_user.category != CategoryEnum.SENIOR:
+        if g.current_user.category != CategoryEnum.MANAGER:
             return jsonify({'error': 'Unauthorized'}), 403
         
         data = request.json
@@ -1032,7 +1073,7 @@ def get_shifts():
 def generate_schedule():
     """Generate a schedule for a specific date range using SchedulingSolver"""
     try:
-        if g.current_user.category != CategoryEnum.SENIOR:
+        if g.current_user.category != CategoryEnum.MANAGER:
             return jsonify({'error': 'Unauthorized'}), 403
         
         data = request.json
@@ -1069,8 +1110,8 @@ def generate_schedule():
         for i, doctor in enumerate(doctors_from_db):
             doctor_id_mapping[i] = doctor.id
             
-            # Determine if doctor is senior (consultant or senior category)
-            is_senior = (doctor.rank == RankEnum.CONSULTANT or doctor.category == CategoryEnum.SENIOR)
+            # Determine if doctor is senior (based on rank)
+            is_senior = (doctor.rank == RankEnum.SENIOR)
             
             # Determine rotation type
             rotation = None
@@ -1288,7 +1329,7 @@ def download_schedule():
 def edit_schedule():
     """Edit schedule by adding or removing doctors from specific dates"""
     try:
-        if g.current_user.category != CategoryEnum.SENIOR:
+        if g.current_user.category != CategoryEnum.MANAGER:
             return jsonify({'error': 'Unauthorized - Manager access required'}), 403
         
         data = request.json
@@ -1341,7 +1382,7 @@ def edit_schedule():
 def save_schedule():
     """Save the entire schedule and mark it as finalized"""
     try:
-        if g.current_user.category != CategoryEnum.SENIOR:
+        if g.current_user.category != CategoryEnum.MANAGER:
             return jsonify({'error': 'Unauthorized - Manager access required'}), 403
         
         data = request.json
@@ -1399,12 +1440,16 @@ def update_profile():
                 'general': SpecializationEnum.GENERAL
             }
             doctor.specialization = specialty_map.get(data['specialty'].lower(), SpecializationEnum.GENERAL)
-            if 'rank' in data:
-                rank_map = {
-                    'resident': RankEnum.RESIDENT,
-                    'consultant': RankEnum.CONSULTANT
+            if 'rotationType' in data:
+                rotation_map = {
+                    'outside': RotationTypeEnum.OUTSIDE,
+                    'visiting': RotationTypeEnum.VISITING,
+                    'internal': RotationTypeEnum.INTERNAL,
+                    'abroad': RotationTypeEnum.ABROAD
                 }
-                doctor.rank = rank_map.get(data['rank'].lower(), RankEnum.RESIDENT)
+                doctor.rotation_type = rotation_map.get(data['rotationType'].lower(), RotationTypeEnum.INTERNAL)
+            if 'isNew' in data:
+                doctor.is_new = bool(data['isNew'])
         
         doctor.updated_at = datetime.utcnow()
         db.session.commit()
