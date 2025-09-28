@@ -2,19 +2,14 @@ import React, { useState } from 'react';
 import { Container, Card, Form, Button, Alert, Row, Col } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { UserRole } from '../../types';
 
 const Signup: React.FC = () => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
-    username: '',
     password: '',
-    confirmPassword: '',
-    role: 'doctor' as UserRole,
-    specialty: '',
-    rank: ''
+    confirmPassword: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -35,7 +30,7 @@ const Signup: React.FC = () => {
     
     // Validation
     if (!formData.firstName || !formData.lastName || !formData.email || 
-        !formData.username || !formData.password || !formData.confirmPassword) {
+        !formData.password || !formData.confirmPassword) {
       setError('Please fill in all required fields');
       return;
     }
@@ -125,18 +120,6 @@ const Signup: React.FC = () => {
                   />
                 </Form.Group>
 
-                <Form.Group className="mb-3">
-                  <Form.Label>Username</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="username"
-                    placeholder="Choose a username"
-                    value={formData.username}
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
-
                 <Row>
                   <Col md={6}>
                     <Form.Group className="mb-3">
@@ -166,48 +149,10 @@ const Signup: React.FC = () => {
                   </Col>
                 </Row>
 
-                <Form.Group className="mb-3">
-                  <Form.Label>Role</Form.Label>
-                  <Form.Select 
-                    name="role" 
-                    value={formData.role} 
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="doctor">Doctor</option>
-                    <option value="manager">Manager & Doctor</option>
-                    <option value="viewer">Viewer</option>
-                  </Form.Select>
-                </Form.Group>
-
-                {(formData.role === 'doctor' || formData.role === 'manager') && (
-                  <Row>
-                    <Col md={6}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Specialty</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="specialty"
-                          placeholder="e.g., Cardiology, Surgery"
-                          value={formData.specialty}
-                          onChange={handleChange}
-                        />
-                      </Form.Group>
-                    </Col>
-                    <Col md={6}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Rank</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="rank"
-                          placeholder="e.g., Resident, Attending"
-                          value={formData.rank}
-                          onChange={handleChange}
-                        />
-                      </Form.Group>
-                    </Col>
-                  </Row>
-                )}
+                <Alert variant="info" className="mb-3">
+                  <strong>Note:</strong> Your account will require approval from a manager before you can access all features. 
+                  You'll initially have viewer access until approved.
+                </Alert>
 
                 <Button 
                   type="submit" 

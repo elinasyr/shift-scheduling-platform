@@ -31,11 +31,12 @@ const Calendar: React.FC = () => {
       const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
       const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
       
-      const startDateStr = startDate.toISOString().split('T')[0];
-      const endDateStr = endDate.toISOString().split('T')[0];
+      // Format dates as YYYY-MM-DD without timezone issues
+      const startDateStr = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
+      const endDateStr = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
 
-      // Load hospital days (on-call and public holidays)
-      const hospitalDaysData = await api.getHospitalDays(startDateStr, endDateStr);
+      // Load hospital days (on-call, surgeries, and public holidays)
+      const hospitalDaysData = await api.getHospitalSchedule(startDateStr, endDateStr);
       setHospitalDays(hospitalDaysData);
 
       // Load all doctors data for names
@@ -48,6 +49,7 @@ const Calendar: React.FC = () => {
 
       // Load user's availability if doctor or manager
       if (user && (user.role === 'doctor' || user.role === 'manager')) {
+        console.log('Start date:', startDateStr, 'End date:', endDateStr);
         const availability = await api.getDoctorAvailability(user.id, startDateStr, endDateStr);
         const unavailable = new Set(
           availability.filter(a => a.isUnavailable).map(a => a.date)
@@ -71,42 +73,47 @@ const Calendar: React.FC = () => {
     }
   };
 
-  const generateCalendarDays = (startDate: Date, endDate: Date, hospitalDays: HospitalDay[]) => {
+  const generateCalendarDays = (startDate: Date, endDate: Date, hospitalDaysData: HospitalDay[]) => {
     const days: CalendarDay[] = [];
-    const hospitalDaysMap = new Map(hospitalDays.map(hd => [hd.date, hd]));
-
-    // Start from the first day of the week containing the first day of the month
+    const hospitalDaysMap = new Map(hospitalDaysData.map(day => [day.date, day]));
+    
+    // Generate 6 weeks (42 days) for the calendar grid
     const firstDay = new Date(startDate);
-    firstDay.setDate(firstDay.getDate() - firstDay.getDay());
-
-    // Generate 6 weeks worth of days
+    firstDay.setDate(1);
+    const firstDayOfWeek = firstDay.getDay();
+    
+    // Start from the beginning of the week containing the 1st
+    const calendarStart = new Date(firstDay);
+    calendarStart.setDate(1 - firstDayOfWeek);
+    
     for (let i = 0; i < 42; i++) {
-      const date = new Date(firstDay);
-      date.setDate(firstDay.getDate() + i);
-      const dateStr = date.toISOString().split('T')[0];
-      
+      const currentDate = new Date(calendarStart);
+      currentDate.setDate(calendarStart.getDate() + i);
+      const dateStr = currentDate.toISOString().split('T')[0];
       const hospitalDay = hospitalDaysMap.get(dateStr);
       
       days.push({
         date: dateStr,
         isOnCall: hospitalDay?.isOnCall || false,
         isPublicHoliday: hospitalDay?.isPublicHoliday || false,
+        hasCardioSurgery: hospitalDay?.hasCardioSurgery || false,
+        hasThoracicSurgery: hospitalDay?.hasThoracicSurgery || false,
         availability: {}
       });
     }
-
+    
     setCalendarDays(days);
   };
 
   const handleDayClick = (date: string) => {
     if (user?.role === 'viewer' || !isEditMode) return;
-
+    console.log('Clicked date:', date);
     const currentDay = new Date(date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Don't allow selecting past dates
-    if (currentDay < today) return;
+    // // Don't allow selecting past dates
+    // if (currentDay < today) return;
 
     setSelectedDate(date);
     setShowModal(true);
@@ -143,8 +150,11 @@ const Calendar: React.FC = () => {
       const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
       const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
 
-      for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-        const dateStr = d.toISOString().split('T')[0];
+      // Use a more reliable loop to avoid date mutation issues
+      const currentDateLoop = new Date(startDate);
+      while (currentDateLoop <= endDate) {
+        // Format date as YYYY-MM-DD without timezone issues
+        const dateStr = `${currentDateLoop.getFullYear()}-${String(currentDateLoop.getMonth() + 1).padStart(2, '0')}-${String(currentDateLoop.getDate()).padStart(2, '0')}`;
         availability.push({
           id: '',
           doctorId: user.id,
@@ -153,6 +163,7 @@ const Calendar: React.FC = () => {
           isHoliday: holidayDays.has(dateStr),
           isUnavailable: unavailableDays.has(dateStr)
         });
+        currentDateLoop.setDate(currentDateLoop.getDate() + 1);
       }
 
       await api.updateDoctorAvailability(user.id, availability);
@@ -189,10 +200,19 @@ const Calendar: React.FC = () => {
       classes.push('day-public-holiday');
     }
 
+    if (day.hasCardioSurgery) {
+      classes.push('day-cardio-surgery');
+    }
+
+    if (day.hasThoracicSurgery) {
+      classes.push('day-thoracic-surgery');
+    }
+
     return classes.join(' ');
   };
 
   const getAvailableDoctors = (date: string) => {
+    console.log('Getting available doctors for date:', date);
     const available = [];
     for (const [doctorId, availability] of Object.entries(allAvailability)) {
       const dayAvail = availability.find(a => a.date === date);
@@ -229,7 +249,14 @@ const Calendar: React.FC = () => {
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month, day);
       const dateStr = date.toISOString().split('T')[0];
-      const dayData = calendarDays.find(d => d.date === dateStr) || { date: dateStr, isOnCall: false, isPublicHoliday: false };
+      const dayData = calendarDays.find(d => d.date === dateStr) || { 
+        date: dateStr, 
+        isOnCall: false, 
+        isPublicHoliday: false,
+        hasCardioSurgery: false,
+        hasThoracicSurgery: false,
+        availability: {}
+      };
       days.push({ ...dayData, dayNumber: day, dayOfWeek: date.getDay() });
     }
 
@@ -270,6 +297,8 @@ const Calendar: React.FC = () => {
                   {isHoliday && <span className="mobile-indicator" style={{backgroundColor: '#fff3e0', color: '#ef6c00'}}>Holiday</span>}
                   {isOnCall && <span className="mobile-indicator" style={{backgroundColor: '#e3f2fd', color: '#1976d2'}}>On Call</span>}
                   {day.isPublicHoliday && <span className="mobile-indicator" style={{backgroundColor: '#fff3e0', color: '#ef6c00'}}>Public Holiday</span>}
+                  {day.hasCardioSurgery && <span className="mobile-indicator" style={{backgroundColor: '#f3e5f5', color: '#7b1fa2'}}>Cardio Surgery</span>}
+                  {day.hasThoracicSurgery && <span className="mobile-indicator" style={{backgroundColor: '#e8f5e8', color: '#388e3c'}}>Thoracic Surgery</span>}
                 </div>
                 
                 {availableDoctors.length > 0 ? (
@@ -409,6 +438,16 @@ const Calendar: React.FC = () => {
                         {new Date(dayData.date).getDate()}
                       </div>
                       
+                      {/* Show surgery indicators */}
+                      <div className="day-indicators">
+                        {dayData.hasCardioSurgery && (
+                          <span className="surgery-indicator cardio" title="Cardio Surgery">♥</span>
+                        )}
+                        {dayData.hasThoracicSurgery && (
+                          <span className="surgery-indicator thoracic" title="Thoracic Surgery">🫁</span>
+                        )}
+                      </div>
+                      
                       {/* Show available doctors as green circles with initials */}
                       {availableDoctors.length > 0 && (
                         <OverlayTrigger
@@ -471,6 +510,8 @@ const Calendar: React.FC = () => {
                 <Badge bg="info" className="me-2 ms-3">●</Badge> On Call
                 <Badge bg="warning" className="me-2 ms-3">★</Badge> Public Holiday
                 <Badge bg="success" className="me-2 ms-3">●</Badge> Available Doctors
+                <span className="me-2 ms-3" style={{color: '#7b1fa2'}}>♥</span> Cardio Surgery
+                <span className="me-2 ms-3" style={{color: '#388e3c'}}>🫁</span> Thoracic Surgery
               </div>
               {isEditMode && (
                 <Button 

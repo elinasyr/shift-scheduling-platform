@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Row, Col, Alert, Table, Badge, Modal, Form } from 'react-bootstrap';
+import { Card, Button, Row, Col, Alert, Table, Badge, Modal, Form, Tabs, Tab } from 'react-bootstrap';
 import { useAuth } from '../../contexts/AuthContext';
 import { Schedule, Doctor, DayAvailability, GenerateScheduleRequest } from '../../types';
 import * as api from '../../services/api';
 import LoadingSpinner from '../common/LoadingSpinner';
+import PendingDoctors from './PendingDoctors';
+import HospitalScheduleManager from './HospitalScheduleManager';
 
 const ManagerDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -35,7 +37,7 @@ const ManagerDashboard: React.FC = () => {
       // Format dates as YYYY-MM-DD without timezone issues
       const startDateStr = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
       const endDateStr = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
-
+      
       console.log('Date calculations:', {
         baseDate: baseDate.toDateString(),
         startDate: startDate.toDateString(),
@@ -49,7 +51,7 @@ const ManagerDashboard: React.FC = () => {
         api.getAllDoctors(),
         api.getAllAvailability(startDateStr, endDateStr)
       ]);
-
+      console.log('Loaded schedule entries:', availabilityData);
       setSchedule(scheduleData);
       setDoctors(doctorsData);
       setAllAvailability(availabilityData);
@@ -211,7 +213,9 @@ const ManagerDashboard: React.FC = () => {
       {message && <Alert variant="success">{message}</Alert>}
       {error && <Alert variant="danger">{error}</Alert>}
 
-      {/* Month Navigation and Actions */}
+      <Tabs defaultActiveKey="schedule" className="mb-4">
+        <Tab eventKey="schedule" title="Schedule Management">
+          {/* Month Navigation and Actions */}
       <Card className="dashboard-card mb-4">
         <Card.Header>
           {/* Mobile-friendly layout */}
@@ -332,6 +336,7 @@ const ManagerDashboard: React.FC = () => {
             <tbody>
               {doctors.map((doctor) => {
                 const availability = allAvailability[doctor.id] || [];
+                console.log(`Doctor ${doctor.id} availability:`, availability.length);
                 const availableDays = availability.filter(a => a.isAvailable).length;
                 const unavailableDays = availability.filter(a => a.isUnavailable).length;
                 const holidayDays = availability.filter(a => a.isHoliday).length;
@@ -420,6 +425,16 @@ const ManagerDashboard: React.FC = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+        </Tab>
+
+        <Tab eventKey="approvals" title="Doctor Approvals">
+          <PendingDoctors />
+        </Tab>
+
+        <Tab eventKey="hospital-schedule" title="Hospital Schedule">
+          <HospitalScheduleManager />
+        </Tab>
+      </Tabs>
     </div>
   );
 };

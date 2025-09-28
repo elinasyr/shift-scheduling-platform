@@ -45,13 +45,14 @@ class Doctor(db.Model):
     username = db.Column(db.String(50), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
-    rank = db.Column(Enum(RankEnum), nullable=False)
+    rank = db.Column(Enum(RankEnum), nullable=True)  # Now nullable, set by manager
     is_new = db.Column(db.Boolean, default=False)
-    category = db.Column(Enum(CategoryEnum), nullable=False)
-    specialization = db.Column(Enum(SpecializationEnum), nullable=False)
+    category = db.Column(Enum(CategoryEnum), nullable=True)  # Now nullable, set by manager
+    specialization = db.Column(Enum(SpecializationEnum), nullable=True)  # Now nullable, set by manager
     abroad = db.Column(db.Boolean, default=False) # για άσκηση στο εξωτερικό
     visiting = db.Column(db.Boolean, default=False) # εμβολίμοι από άλλα νοσοκομεία
     profile_photo = db.Column(db.String(255), nullable=True)
+    is_approved = db.Column(db.Boolean, default=False)  # New field for approval status
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -70,16 +71,15 @@ class Doctor(db.Model):
     
     def to_dict(self):
         """Convert to dictionary for JSON serialization"""
-        # Map category to frontend role
-        role_mapping = {
-            (CategoryEnum.SENIOR, False): 'manager',
-            (CategoryEnum.JUNIOR, False): 'doctor',
-            (CategoryEnum.JUNIOR, True): 'viewer'  # Viewer role for special junior doctors
-        }
-        
-        # Determine role based on username or email for now (can be enhanced)
-        is_viewer = 'viewer' in self.username.lower() or 'viewer' in self.email.lower()
-        role = role_mapping.get((self.category, is_viewer), 'doctor')
+        # Determine role based on approval status and category
+        if not self.is_approved:
+            role = 'viewer'  # Unapproved users are viewers
+        elif self.category == CategoryEnum.SENIOR:
+            role = 'manager'
+        elif self.category == CategoryEnum.JUNIOR:
+            role = 'doctor'
+        else:
+            role = 'viewer'  # Default fallback
         
         return {
             'id': self.id,
@@ -88,11 +88,12 @@ class Doctor(db.Model):
             'username': self.username,
             'email': self.email,
             'role': role,
-            'rank': self.rank.value,
-            'category': self.category.value,
-            'specialty': self.specialization.value,
-            'specialization': self.specialization.value,
+            'rank': self.rank.value if self.rank else None,
+            'category': self.category.value if self.category else None,
+            'specialty': self.specialization.value if self.specialization else None,
+            'specialization': self.specialization.value if self.specialization else None,
             'profilePhoto': self.profile_photo,
+            'isApproved': self.is_approved,
             'createdAt': self.created_at.isoformat() if self.created_at else None,
             'updatedAt': self.updated_at.isoformat() if self.updated_at else None
         }
@@ -200,6 +201,8 @@ class HospitalDay(db.Model):
     date = db.Column(db.Date, nullable=False, unique=True)
     is_on_call = db.Column(db.Boolean, default=False)
     is_public_holiday = db.Column(db.Boolean, default=False)
+    has_cardio_surgery = db.Column(db.Boolean, default=False)  # New field for cardio surgeries
+    has_thoracic_surgery = db.Column(db.Boolean, default=False)  # New field for thoracic surgeries
     description = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -211,6 +214,8 @@ class HospitalDay(db.Model):
             'date': self.date.isoformat(),
             'isOnCall': self.is_on_call,
             'isPublicHoliday': self.is_public_holiday,
+            'hasCardioSurgery': self.has_cardio_surgery,
+            'hasThoracicSurgery': self.has_thoracic_surgery,
             'description': self.description
         }
 

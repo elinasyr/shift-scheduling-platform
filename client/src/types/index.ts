@@ -8,6 +8,7 @@ export interface User {
   specialty?: string;
   rank?: string;
   profilePhoto?: string;
+  isApproved?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -45,6 +46,8 @@ export interface HospitalDay {
   date: string;
   isOnCall: boolean;
   isPublicHoliday: boolean;
+  hasCardioSurgery?: boolean;
+  hasThoracicSurgery?: boolean;
   description?: string;
 }
 
@@ -61,18 +64,16 @@ export interface SignupData {
   firstName: string;
   lastName: string;
   email: string;
-  username: string;
   password: string;
   confirmPassword: string;
-  role: UserRole;
-  specialty?: string;
-  rank?: string;
 }
 
 export interface CalendarDay {
   date: string;
   isOnCall: boolean;
   isPublicHoliday: boolean;
+  hasCardioSurgery?: boolean;
+  hasThoracicSurgery?: boolean;
   availability: {
     [doctorId: string]: {
       isAvailable: boolean;
@@ -95,4 +96,10 @@ export interface ScheduleGenerationResult {
   schedule: Schedule[];
   conflicts?: string[];
   warnings?: string[];
+}
+
+export interface ApprovalData {
+  role: UserRole;
+  specialty: string;
+  rank: string;
 }

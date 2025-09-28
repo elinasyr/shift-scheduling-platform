@@ -117,6 +117,53 @@ code {
   font-size: 12px;
 }
 
+.day-cardio-surgery {
+  border-left: 4px solid #7b1fa2 !important;
+}
+
+.day-thoracic-surgery {
+  border-right: 4px solid #388e3c !important;
+}
+
+.day-indicators {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 2px;
+}
+
+.surgery-indicator {
+  font-size: 10px;
+  opacity: 0.8;
+}
+
+.surgery-indicator.cardio {
+  color: #7b1fa2;
+}
+
+.surgery-indicator.thoracic {
+  color: #388e3c;
+}
+
+/* Schedule view surgery indicators */
+.calendar-day.cardio-surgery {
+  border-left: 4px solid #7b1fa2 !important;
+}
+
+.calendar-day.thoracic-surgery {
+  border-right: 4px solid #388e3c !important;
+}
+
+.mobile-calendar-day.cardio-surgery {
+  border-left: 4px solid #7b1fa2;
+}
+
+.mobile-calendar-day.thoracic-surgery {
+  border-right: 4px solid #388e3c;
+}
+
 .profile-avatars {
   display: flex;
   margin-top: 5px;

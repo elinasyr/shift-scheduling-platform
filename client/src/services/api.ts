@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { User, SignupData, Doctor, DayAvailability, Schedule, HospitalDay, GenerateScheduleRequest, ScheduleGenerationResult } from '../types';
+import { User, SignupData, Doctor, DayAvailability, Schedule, HospitalDay, GenerateScheduleRequest, ScheduleGenerationResult, ApprovalData } from '../types';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
@@ -128,12 +128,22 @@ export const getDoctorAvailability = async (doctorId: string, startDate: string,
     const availability: DayAvailability[] = [];
     const backendData = response.data.availability || {};
     
-    // Generate all days in the range
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    // Generate all days in the range - ensure proper date parsing
+    // Parse dates manually to avoid timezone issues
+    const [startYear, startMonth, startDay] = startDate.split('-').map(Number);
+    const [endYear, endMonth, endDay] = endDate.split('-').map(Number);
     
-    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-      const dateStr = d.toISOString().split('T')[0];
+    const start = new Date(startYear, startMonth - 1, startDay); // month is 0-based
+    const end = new Date(endYear, endMonth - 1, endDay); // month is 0-based
+    
+    console.log('Date range:', { startDate, endDate, start, end });
+
+    // Use a proper while loop to avoid date increment issues
+    const currentDate = new Date(start);
+    while (currentDate <= end) {
+      console.log('Processing date:', currentDate, 'vs end:', end);
+      // Format date as YYYY-MM-DD without timezone issues
+      const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
       const status = backendData[dateStr] || 'available';
       
       availability.push({
@@ -144,6 +154,9 @@ export const getDoctorAvailability = async (doctorId: string, startDate: string,
         isHoliday: false, // We'll handle holidays separately
         isUnavailable: status === 'unavailable'
       });
+      
+      // Increment the date for next iteration
+      currentDate.setDate(currentDate.getDate() + 1);
     }
     
     return availability;
@@ -180,6 +193,7 @@ export const getAllAvailability = async (startDate: string, endDate: string): Pr
     const allAvailability: { [doctorId: string]: DayAvailability[] } = {};
     
     // Get availability for each doctor
+    console.log('Fetching availability for all doctors from', startDate, 'to', endDate);
     for (const doctor of doctors) {
       allAvailability[doctor.id] = await getDoctorAvailability(doctor.id, startDate, endDate);
     }
@@ -397,6 +411,50 @@ export const uploadProfilePhoto = async (file: File): Promise<string> => {
   // TODO: Implement photo upload endpoint on backend
   console.log('Photo upload not yet implemented on backend');
   return '/placeholder-avatar.png';
+};
+
+// Doctor Approval APIs
+export const getPendingDoctors = async (): Promise<User[]> => {
+  try {
+    const response = await apiClient.get('/doctors/pending');
+    return response.data;
+  } catch (error) {
+    console.error('Failed to get pending doctors:', error);
+    throw error;
+  }
+};
+
+export const approveDoctor = async (doctorId: string, approvalData: ApprovalData): Promise<User> => {
+  try {
+    const response = await apiClient.post(`/doctors/${doctorId}/approve`, approvalData);
+    return response.data.user;
+  } catch (error) {
+    console.error('Failed to approve doctor:', error);
+    throw error;
+  }
+};
+
+// Hospital Schedule APIs
+export const getHospitalSchedule = async (startDate: string, endDate: string): Promise<HospitalDay[]> => {
+  try {
+    const response = await apiClient.get('/hospital-schedule', {
+      params: { startDate, endDate }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Failed to get hospital schedule:', error);
+    throw error;
+  }
+};
+
+export const updateHospitalSchedule = async (scheduleData: Partial<HospitalDay>): Promise<HospitalDay> => {
+  try {
+    const response = await apiClient.post('/hospital-schedule', scheduleData);
+    return response.data.hospitalDay;
+  } catch (error) {
+    console.error('Failed to update hospital schedule:', error);
+    throw error;
+  }
 };
 
 export default apiClient;

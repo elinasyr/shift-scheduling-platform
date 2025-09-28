@@ -164,7 +164,9 @@ const Schedule: React.FC = () => {
       isToday ? 'today' : '',
       isUserAssigned ? 'user-assigned' : '',
       hospitalDay?.isPublicHoliday ? 'holiday' : '',
-      hospitalDay?.isOnCall ? 'on-call' : ''
+      hospitalDay?.isOnCall ? 'on-call' : '',
+      hospitalDay?.hasCardioSurgery ? 'cardio-surgery' : '',
+      hospitalDay?.hasThoracicSurgery ? 'thoracic-surgery' : ''
     ].filter(Boolean).join(' ');
 
     return (
@@ -177,6 +179,12 @@ const Schedule: React.FC = () => {
             )}
             {hospitalDay?.isOnCall && (
               <Badge bg="warning" className="me-1" title="On-Call Day">📞</Badge>
+            )}
+            {hospitalDay?.hasCardioSurgery && (
+              <Badge bg="dark" className="me-1" title="Cardio Surgery" style={{backgroundColor: '#7b1fa2'}}>♥</Badge>
+            )}
+            {hospitalDay?.hasThoracicSurgery && (
+              <Badge bg="dark" className="me-1" title="Thoracic Surgery" style={{backgroundColor: '#388e3c'}}>🫁</Badge>
             )}
           </div>
         </div>
@@ -222,6 +230,8 @@ const Schedule: React.FC = () => {
           if (isWeekend) dayClasses += ' weekend';
           if (hospitalDay?.isOnCall) dayClasses += ' oncall';
           if (hospitalDay?.isPublicHoliday) dayClasses += ' holiday';
+          if (hospitalDay?.hasCardioSurgery) dayClasses += ' cardio-surgery';
+          if (hospitalDay?.hasThoracicSurgery) dayClasses += ' thoracic-surgery';
 
           const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
           const assignedDoctors = scheduleForDay?.doctorIds || [];
@@ -237,6 +247,8 @@ const Schedule: React.FC = () => {
                 <div className="mobile-day-indicators">
                   {hospitalDay?.isOnCall && <span className="mobile-indicator" style={{backgroundColor: '#e3f2fd', color: '#1976d2'}}>On Call</span>}
                   {hospitalDay?.isPublicHoliday && <span className="mobile-indicator" style={{backgroundColor: '#fff3e0', color: '#ef6c00'}}>Public Holiday</span>}
+                  {hospitalDay?.hasCardioSurgery && <span className="mobile-indicator" style={{backgroundColor: '#f3e5f5', color: '#7b1fa2'}}>Cardio Surgery</span>}
+                  {hospitalDay?.hasThoracicSurgery && <span className="mobile-indicator" style={{backgroundColor: '#e8f5e8', color: '#388e3c'}}>Thoracic Surgery</span>}
                   {scheduleForDay && !scheduleForDay.isFinalized && <span className="mobile-indicator" style={{backgroundColor: '#fff3e0', color: '#ef6c00'}}>Draft</span>}
                   {scheduleForDay?.isFinalized && <span className="mobile-indicator" style={{backgroundColor: '#e8f5e8', color: '#2e7d32'}}>Final</span>}
                 </div>

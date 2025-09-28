@@ -49,7 +49,8 @@ def add_mock_data():
             rank=RankEnum.CONSULTANT,
             category=CategoryEnum.SENIOR,
             specialization=SpecializationEnum.CARDIOLOGY,
-            is_new=False
+            is_new=False,
+            is_approved=True  # Manager is pre-approved
         )
         manager.set_password("password123")
         
@@ -62,7 +63,8 @@ def add_mock_data():
             rank=RankEnum.CONSULTANT,
             category=CategoryEnum.JUNIOR,
             specialization=SpecializationEnum.THORACIC,
-            is_new=False
+            is_new=False,
+            is_approved=True  # Pre-approved
         )
         senior_doc.set_password("password123")
         
@@ -75,20 +77,22 @@ def add_mock_data():
             rank=RankEnum.RESIDENT,
             category=CategoryEnum.JUNIOR,
             specialization=SpecializationEnum.GENERAL,
-            is_new=True
+            is_new=True,
+            is_approved=True  # Pre-approved
         )
         junior_doc.set_password("password123")
         
-        # Viewer role (receptionist/viewer)
+        # Viewer role (unapproved user)
         viewer = Doctor(
             first_name="Emma",
             last_name="Viewer",
             username="viewer",
             email="viewer@hospital.com",
-            rank=RankEnum.RESIDENT,
-            category=CategoryEnum.JUNIOR,  # We'll handle viewer in frontend logic
-            specialization=SpecializationEnum.GENERAL,
-            is_new=False
+            rank=None,  # Will be set by manager
+            category=None,  # Will be set by manager
+            specialization=None,  # Will be set by manager
+            is_new=False,
+            is_approved=False  # Not approved yet
         )
         viewer.set_password("password123")
         
@@ -105,7 +109,8 @@ def add_mock_data():
                 rank=RankEnum.CONSULTANT,
                 category=CategoryEnum.SENIOR,
                 specialization=SpecializationEnum.GENERAL,
-                is_new=False
+                is_new=False,
+                is_approved=True  # Pre-approved
             )
             doc.set_password("password123")
             all_doctors.append(doc)
@@ -142,6 +147,110 @@ def add_mock_data():
         db.session.commit()
         
         print("Mock data added successfully!")
+    
+    # Add Greek holidays for 2025 and 2026
+    add_greek_holidays()
+
+
+def add_greek_holidays():
+    """Add Greek public holidays for 2025 and 2026"""
+    # Static holiday data for Greece
+    greek_holidays = [
+        # 2025 holidays
+        ('2025-01-01', "New Year's Day", HolidayType.NATIONAL),
+        ('2025-01-06', 'Epiphany', HolidayType.RELIGIOUS),
+        ('2025-01-30', 'The Three Holy Hierarchs', HolidayType.RELIGIOUS),
+        ('2025-03-03', 'Orthodox Clean Monday', HolidayType.RELIGIOUS),
+        ('2025-03-20', 'March Equinox', HolidayType.SPECIAL),
+        ('2025-03-25', 'Independence Day', HolidayType.NATIONAL),
+        ('2025-03-25', 'Annunciation of the Lord', HolidayType.RELIGIOUS),
+        ('2025-04-18', 'Orthodox Good Friday', HolidayType.RELIGIOUS),
+        ('2025-04-19', 'Orthodox Holy Saturday', HolidayType.RELIGIOUS),
+        ('2025-04-20', 'Orthodox Easter', HolidayType.RELIGIOUS),
+        ('2025-04-21', 'Orthodox Easter Monday', HolidayType.RELIGIOUS),
+        ('2025-05-01', 'Labor Day', HolidayType.NATIONAL),
+        ('2025-06-08', 'Orthodox Pentecost', HolidayType.RELIGIOUS),
+        ('2025-06-09', 'Orthodox Pentecost Monday', HolidayType.RELIGIOUS),
+        ('2025-08-15', 'Dormition of the Holy Virgin', HolidayType.RELIGIOUS),
+        ('2025-10-28', 'The Ochi Day', HolidayType.NATIONAL),
+        ('2025-11-17', 'Polytechneio', HolidayType.NATIONAL),
+        ('2025-12-24', 'Christmas Eve', HolidayType.RELIGIOUS),
+        ('2025-12-25', 'Christmas Day', HolidayType.RELIGIOUS),
+        ('2025-12-26', 'Synaxis of the Mother of God', HolidayType.RELIGIOUS),
+        ('2025-12-31', "New Year's Eve", HolidayType.SPECIAL),
+        
+        # 2026 holidays
+        ('2026-01-01', "New Year's Day", HolidayType.NATIONAL),
+        ('2026-01-06', 'Epiphany', HolidayType.RELIGIOUS),
+        ('2026-01-30', 'The Three Holy Hierarchs', HolidayType.RELIGIOUS),
+        ('2026-02-23', 'Orthodox Clean Monday', HolidayType.RELIGIOUS),
+        ('2026-03-20', 'March Equinox', HolidayType.SPECIAL),
+        ('2026-03-25', 'Independence Day', HolidayType.NATIONAL),
+        ('2026-03-25', 'Annunciation of the Lord', HolidayType.RELIGIOUS),
+        ('2026-04-10', 'Orthodox Good Friday', HolidayType.RELIGIOUS),
+        ('2026-04-11', 'Orthodox Holy Saturday', HolidayType.RELIGIOUS),
+        ('2026-04-12', 'Orthodox Easter', HolidayType.RELIGIOUS),
+        ('2026-04-13', 'Orthodox Easter Monday', HolidayType.RELIGIOUS),
+        ('2026-05-01', 'Labor Day', HolidayType.NATIONAL),
+        ('2026-05-31', 'Orthodox Pentecost', HolidayType.RELIGIOUS),
+        ('2026-06-01', 'Orthodox Pentecost Monday', HolidayType.RELIGIOUS),
+        ('2026-08-15', 'Dormition of the Holy Virgin', HolidayType.RELIGIOUS),
+        ('2026-10-28', 'The Ochi Day', HolidayType.NATIONAL),
+        ('2026-11-17', 'Polytechneio', HolidayType.NATIONAL),
+        ('2026-12-24', 'Christmas Eve', HolidayType.RELIGIOUS),
+        ('2026-12-25', 'Christmas Day', HolidayType.RELIGIOUS),
+        ('2026-12-26', 'Synaxis of the Mother of God', HolidayType.RELIGIOUS),
+        ('2026-12-31', "New Year's Eve", HolidayType.SPECIAL),
+    ]
+    
+    try:
+        holidays_added = 0
+        for date_str, name, holiday_type in greek_holidays:
+            holiday_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            
+            # Check if holiday already exists
+            existing_holiday = Holiday.query.filter_by(date=holiday_date).first()
+            if existing_holiday:
+                continue
+            
+            # Create holiday record
+            holiday = Holiday(
+                date=holiday_date,
+                name=name,
+                type=holiday_type,
+                description=f"Greek public holiday"
+            )
+            db.session.add(holiday)
+            
+            # Also add to HospitalDay as public holiday (only for major holidays)
+            if holiday_type in [HolidayType.NATIONAL, HolidayType.RELIGIOUS]:
+                existing_hospital_day = HospitalDay.query.filter_by(date=holiday_date).first()
+                if existing_hospital_day:
+                    existing_hospital_day.is_public_holiday = True
+                    if not existing_hospital_day.description:
+                        existing_hospital_day.description = f"Public Holiday: {name}"
+                else:
+                    hospital_day = HospitalDay(
+                        date=holiday_date,
+                        is_on_call=False,
+                        is_public_holiday=True,
+                        has_cardio_surgery=False,
+                        has_thoracic_surgery=False,
+                        description=f"Public Holiday: {name}"
+                    )
+                    db.session.add(hospital_day)
+            
+            holidays_added += 1
+        
+        db.session.commit()
+        if holidays_added > 0:
+            print(f"Added {holidays_added} Greek holidays for 2025-2026!")
+        else:
+            print("Greek holidays already exist in database.")
+        
+    except Exception as e:
+        print(f"Error adding holidays: {e}")
+        db.session.rollback()
 
 
 def create_tables():
@@ -237,8 +346,8 @@ def signup():
     try:
         data = request.json
         
-        # Validate required fields
-        required_fields = ['firstName', 'lastName', 'username', 'email', 'password', 'role']
+        # Validate required fields - removed role, specialty, rank
+        required_fields = ['firstName', 'lastName', 'username', 'email', 'password']
         for field in required_fields:
             if field not in data or not data[field]:
                 return jsonify({'error': f'{field} is required'}), 400
@@ -250,32 +359,17 @@ def signup():
         if Doctor.query.filter_by(email=data['email']).first():
             return jsonify({'error': 'Email already exists'}), 400
         
-        # Create new doctor
+        # Create new doctor - all new users start as unapproved (viewer role)
         doctor = Doctor(
             first_name=data['firstName'],
             last_name=data['lastName'],
             username=data['username'],
             email=data['email'],
-            rank=RankEnum.RESIDENT,  # Default rank
-            category=CategoryEnum.SENIOR if data['role'] == 'manager' else CategoryEnum.JUNIOR,
-            specialization=SpecializationEnum.GENERAL  # Default specialization
+            rank=None,  # Will be set by manager
+            category=None,  # Will be set by manager
+            specialization=None,  # Will be set by manager
+            is_approved=False  # Not approved by default
         )
-        
-        if 'specialty' in data and data['specialty']:
-            # Map specialty to specialization enum
-            specialty_map = {
-                'cardiology': SpecializationEnum.CARDIOLOGY,
-                'thoracic': SpecializationEnum.THORACIC,
-                'general': SpecializationEnum.GENERAL
-            }
-            doctor.specialization = specialty_map.get(data['specialty'].lower(), SpecializationEnum.GENERAL)
-        
-        if 'rank' in data and data['rank']:
-            rank_map = {
-                'resident': RankEnum.RESIDENT,
-                'consultant': RankEnum.CONSULTANT
-            }
-            doctor.rank = rank_map.get(data['rank'].lower(), RankEnum.RESIDENT)
         
         doctor.set_password(data['password'])
         
@@ -436,6 +530,142 @@ def delete_doctor(doctor_id):
         db.session.commit()
         
         return jsonify({'message': 'Doctor deleted successfully'}), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/doctors/<int:doctor_id>/approve', methods=['POST'])
+@token_required
+def approve_doctor(doctor_id):
+    """Approve a doctor and set their role/specialty/rank (manager only)"""
+    try:
+        if g.current_user.category != CategoryEnum.SENIOR:
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        doctor = Doctor.query.get_or_404(doctor_id)
+        data = request.json
+        
+        # Validate required fields for approval
+        required_fields = ['role', 'specialty', 'rank']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return jsonify({'error': f'{field} is required for approval'}), 400
+        
+        # Set the doctor's role, specialty, and rank
+        doctor.category = CategoryEnum.SENIOR if data['role'] == 'manager' else CategoryEnum.JUNIOR
+        
+        specialty_map = {
+            'cardiology': SpecializationEnum.CARDIOLOGY,
+            'thoracic': SpecializationEnum.THORACIC,
+            'general': SpecializationEnum.GENERAL
+        }
+        doctor.specialization = specialty_map.get(data['specialty'].lower(), SpecializationEnum.GENERAL)
+        
+        rank_map = {
+            'resident': RankEnum.RESIDENT,
+            'consultant': RankEnum.CONSULTANT
+        }
+        doctor.rank = rank_map.get(data['rank'].lower(), RankEnum.RESIDENT)
+        
+        # Approve the doctor
+        doctor.is_approved = True
+        doctor.updated_at = datetime.utcnow()
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Doctor approved successfully',
+            'user': doctor.to_dict()
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/doctors/pending', methods=['GET'])
+@token_required
+def get_pending_doctors():
+    """Get all pending (unapproved) doctors (manager only)"""
+    try:
+        if g.current_user.category != CategoryEnum.SENIOR:
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        pending_doctors = Doctor.query.filter_by(is_approved=False).all()
+        result = [doctor.to_dict() for doctor in pending_doctors]
+        
+        return jsonify(result), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Hospital schedule management routes
+@app.route('/api/hospital-schedule', methods=['GET'])
+@optional_auth
+def get_hospital_schedule():
+    """Get hospital schedule (on-call days, surgeries)"""
+    try:
+        start_date_str = request.args.get('startDate')
+        end_date_str = request.args.get('endDate')
+        
+        query = HospitalDay.query
+        
+        if start_date_str:
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+            query = query.filter(HospitalDay.date >= start_date)
+        
+        if end_date_str:
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+            query = query.filter(HospitalDay.date <= end_date)
+        
+        hospital_days = query.all()
+        result = [day.to_dict() for day in hospital_days]
+        
+        return jsonify(result), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/hospital-schedule', methods=['POST'])
+@token_required
+def update_hospital_schedule():
+    """Update hospital schedule (manager only)"""
+    try:
+        if g.current_user.category != CategoryEnum.SENIOR:
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        data = request.json
+        
+        if 'date' not in data:
+            return jsonify({'error': 'Date is required'}), 400
+        
+        date_obj = datetime.strptime(data['date'], '%Y-%m-%d').date()
+        
+        # Find or create hospital day
+        hospital_day = HospitalDay.query.filter_by(date=date_obj).first()
+        if not hospital_day:
+            hospital_day = HospitalDay(date=date_obj)
+            db.session.add(hospital_day)
+        
+        # Update fields
+        if 'isOnCall' in data:
+            hospital_day.is_on_call = data['isOnCall']
+        if 'isPublicHoliday' in data:
+            hospital_day.is_public_holiday = data['isPublicHoliday']
+        if 'hasCardioSurgery' in data:
+            hospital_day.has_cardio_surgery = data['hasCardioSurgery']
+        if 'hasThoracicSurgery' in data:
+            hospital_day.has_thoracic_surgery = data['hasThoracicSurgery']
+        if 'description' in data:
+            hospital_day.description = data['description']
+        
+        hospital_day.updated_at = datetime.utcnow()
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Hospital schedule updated successfully',
+            'hospitalDay': hospital_day.to_dict()
+        }), 200
         
     except Exception as e:
         db.session.rollback()
