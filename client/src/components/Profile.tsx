@@ -47,7 +47,7 @@ const Profile: React.FC = () => {
       };
       
       await api.updateProfile(profileData);
-      setMessage('Profile updated successfully!');
+      setMessage('Το προφίλ ενημερώθηκε επιτυχώς!');
       setEditing(false);
       
       // Reload the page to refresh user data
@@ -55,7 +55,7 @@ const Profile: React.FC = () => {
         window.location.reload();
       }, 1500);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update profile');
+      setError(err.response?.data?.message || 'Αποτυχία ενημέρωσης προφίλ');
     } finally {
       setLoading(false);
     }
@@ -84,14 +84,14 @@ const Profile: React.FC = () => {
     try {
       setLoading(true);
       await api.uploadProfilePhoto(file);
-      setMessage('Profile photo updated successfully!');
+      setMessage('Η φωτογραφία προφίλ ενημερώθηκε επιτυχώς!');
       
       // Reload to refresh the photo
       setTimeout(() => {
         window.location.reload();
       }, 1500);
     } catch (err: any) {
-      setError('Failed to upload photo');
+      setError('Αποτυχία μεταφόρτωσης φωτογραφίας');
     } finally {
       setLoading(false);
     }
@@ -101,8 +101,8 @@ const Profile: React.FC = () => {
     <div>
       <Row className="mb-4">
         <Col>
-          <h2>Profile</h2>
-          <p className="text-muted">Manage your account information</p>
+          <h2>Προφίλ</h2>
+          <p className="text-muted">Διαχειριστείτε τις πληροφορίες του λογαριασμού σας</p>
         </Col>
       </Row>
 
@@ -113,22 +113,22 @@ const Profile: React.FC = () => {
         <Col xs={12} lg={8}>
           <Card className="dashboard-card">
             <Card.Header className="d-flex justify-content-between align-items-center">
-              <h5 className="mb-0">Personal Information</h5>
+              <h5 className="mb-0">Προσωπικές Πληροφορίες</h5>
               {!editing ? (
                 <Button variant="outline-primary" onClick={() => setEditing(true)}>
-                  Edit Profile
+                  Επεξεργασία Προφίλ
                 </Button>
               ) : (
                 <div>
                   <Button variant="outline-secondary" onClick={handleCancel} className="me-2">
-                    Cancel
+                    Ακύρωση
                   </Button>
                   <Button 
                     variant="primary" 
                     onClick={handleSubmit}
                     disabled={loading}
                   >
-                    {loading ? 'Saving...' : 'Save Changes'}
+                    {loading ? 'Αποθήκευση...' : 'Αποθήκευση Αλλαγών'}
                   </Button>
                 </div>
               )}
@@ -138,7 +138,7 @@ const Profile: React.FC = () => {
                 <Row>
                                     <Col xs={12} sm={6}>
                     <Form.Group className="mb-3">
-                      <Form.Label>First Name</Form.Label>
+                      <Form.Label>Όνομα</Form.Label>
                       <Form.Control
                         type="text"
                         name="firstName"
@@ -150,7 +150,7 @@ const Profile: React.FC = () => {
                   </Col>
                   <Col xs={12} sm={6}>
                     <Form.Group className="mb-3">
-                      <Form.Label>Last Name</Form.Label>
+                      <Form.Label>Επώνυμο</Form.Label>
                       <Form.Control
                         type="text"
                         name="lastName"
@@ -164,7 +164,7 @@ const Profile: React.FC = () => {
                 </Row>
 
                 <Form.Group className="mb-3">
-                  <Form.Label>Email Address</Form.Label>
+                  <Form.Label>Διεύθυνση Email</Form.Label>
                   <Form.Control
                     type="email"
                     name="email"
@@ -180,30 +180,30 @@ const Profile: React.FC = () => {
                     <Row>
                       <Col md={6}>
                         <Form.Group className="mb-3">
-                          <Form.Label>Specialty</Form.Label>
+                          <Form.Label>Χειρουργεία</Form.Label>
                           <Form.Select
                             name="specialty"
                             value={formData.specialty}
                             onChange={handleChange}
                             disabled={!editing}
                           >
-                            <option value="cardiology">Cardiology</option>
-                            <option value="thoracic">Thoracic</option>
-                            <option value="general">General</option>
+                            <option value="cardiology">Καρδιολογία</option>
+                            <option value="thoracic">Θωρακική</option>
+                            <option value="general">Γενική</option>
                           </Form.Select>
                         </Form.Group>
                       </Col>
                       <Col md={6}>
                         <Form.Group className="mb-3">
-                          <Form.Label>Rank (Seniority Level)</Form.Label>
+                          <Form.Label>Βαθμίδα (Επίπεδο Αρχαιότητας)</Form.Label>
                           <Form.Select
                             name="rank"
                             value={formData.rank}
                             onChange={handleChange}
                             disabled={!editing}
                           >
-                            <option value="junior">Junior</option>
-                            <option value="senior">Senior</option>
+                            <option value="junior">Μικρός</option>
+                            <option value="senior">Μεγάλος</option>
                           </Form.Select>
                         </Form.Group>
                       </Col>
@@ -211,33 +211,33 @@ const Profile: React.FC = () => {
                     <Row>
                       <Col md={6}>
                         <Form.Group className="mb-3">
-                          <Form.Label>Category (Access Level)</Form.Label>
+                          <Form.Label>Κατηγορία (Επίπεδο Πρόσβασης)</Form.Label>
                           <Form.Select
                             name="category"
                             value={formData.category}
                             onChange={handleChange}
                             disabled={!editing}
                           >
-                            <option value="doctor">Doctor</option>
-                            <option value="manager">Manager</option>
-                            <option value="viewer">Viewer</option>
+                            <option value="doctor">Ειδικευόμενος</option>
+                            <option value="manager">Διαχειριστής</option>
+                            <option value="viewer">Θεατής</option>
                           </Form.Select>
                         </Form.Group>
                       </Col>
                       <Col md={6}>
                         <Form.Group className="mb-3">
-                          <Form.Label>Rotation Type</Form.Label>
+                          <Form.Label>Τύπος Rotation</Form.Label>
                           <Form.Select
                             name="rotationType"
                             value={formData.rotationType}
                             onChange={handleChange}
                             disabled={!editing}
                           >
-                            <option value="">Select rotation type...</option>
-                            <option value="internal">Regular</option>
-                            <option value="visiting">Visiting from other hospital</option>
-                            <option value="abroad">Internship abroad</option>
-                            <option value="outside">Doctors outside of Attikon</option>
+                            <option value="">Επιλέξτε τύπο rotation...</option>
+                            <option value="internal">Κανονικός</option>
+                            <option value="visiting">Επισκέπτης από άλλο νοσοκομείο</option>
+                            <option value="abroad">Πρακτική στο εξωτερικό</option>
+                            <option value="outside">Ειδικευόμενοι εκτός Αττικόν</option>
                           </Form.Select>
                         </Form.Group>
                       </Col>
@@ -250,7 +250,7 @@ const Profile: React.FC = () => {
                           checked={formData.isNew}
                           onChange={(e) => setFormData(prev => ({ ...prev, isNew: e.target.checked }))}
                           disabled={!editing}
-                          label="Is New Doctor"
+                          label="Είναι Νέος Ειδικευόμενος"
                         />
                       </Form.Group>
                     )}
@@ -260,7 +260,7 @@ const Profile: React.FC = () => {
                 <Row>
                   <Col md={6}>
                     <Form.Group className="mb-3">
-                      <Form.Label>Username</Form.Label>
+                      <Form.Label>Όνομα Χρήστη</Form.Label>
                       <Form.Control
                         type="text"
                         value={user?.username || ''}
@@ -268,13 +268,13 @@ const Profile: React.FC = () => {
                         className="bg-light"
                       />
                       <Form.Text className="text-muted">
-                        Username cannot be changed
+                        Το όνομα χρήστη δεν μπορεί να αλλάξει
                       </Form.Text>
                     </Form.Group>
                   </Col>
                   <Col md={6}>
                     <Form.Group className="mb-3">
-                      <Form.Label>Role</Form.Label>
+                      <Form.Label>Ρόλος</Form.Label>
                       <Form.Control
                         type="text"
                         value={user?.role || ''}
@@ -282,7 +282,7 @@ const Profile: React.FC = () => {
                         className="bg-light"
                       />
                       <Form.Text className="text-muted">
-                        Role is managed by administrators
+                        Ο ρόλος διαχειρίζεται από τους διαχειριστές
                       </Form.Text>
                     </Form.Group>
                   </Col>
@@ -295,7 +295,7 @@ const Profile: React.FC = () => {
         <Col xs={12} lg={4}>
           <Card className="dashboard-card">
             <Card.Header>
-              <h5 className="mb-0">Profile Photo</h5>
+              <h5 className="mb-0">Φωτογραφία Προφίλ</h5>
             </Card.Header>
             <Card.Body className="text-center">
               {user?.profilePhoto ? (
@@ -319,7 +319,7 @@ const Profile: React.FC = () => {
               
               <Form.Group>
                 <Form.Label htmlFor="photoUpload" className="btn btn-outline-primary btn-sm">
-                  {loading ? 'Uploading...' : 'Change Photo'}
+                  {loading ? 'Μεταφόρτωση...' : 'Αλλαγή Φωτογραφίας'}
                 </Form.Label>
                 <Form.Control
                   type="file"
@@ -332,24 +332,24 @@ const Profile: React.FC = () => {
               </Form.Group>
               
               <small className="text-muted d-block mt-2">
-                Supported formats: JPG, PNG, GIF<br />
-                Max size: 5MB
+                Υποστηριζόμενες μορφές: JPG, PNG, GIF<br />
+                Μέγιστο μέγεθος: 5MB
               </small>
             </Card.Body>
           </Card>
 
           <Card className="dashboard-card mt-3">
             <Card.Header>
-              <h5 className="mb-0">Account Information</h5>
+              <h5 className="mb-0">Πληροφορίες Λογαριασμού</h5>
             </Card.Header>
             <Card.Body>
               <p className="mb-2">
-                <strong>Member since:</strong><br />
-                {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Unknown'}
+                <strong>Μέλος από:</strong><br />
+                {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('el-GR') : 'Άγνωστο'}
               </p>
               <p className="mb-2">
-                <strong>Last updated:</strong><br />
-                {user?.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : 'Unknown'}
+                <strong>Τελευταία ενημέρωση:</strong><br />
+                {user?.updatedAt ? new Date(user.updatedAt).toLocaleDateString('el-GR') : 'Άγνωστο'}
               </p>
               {/* <p className="mb-0">
                 <strong>User ID:</strong><br />

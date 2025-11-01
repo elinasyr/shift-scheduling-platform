@@ -88,7 +88,7 @@ const Calendar: React.FC = () => {
     // Generate 6 weeks (42 days) for the calendar grid
     const firstDay = new Date(startDate);
     firstDay.setDate(1);
-    const firstDayOfWeek = firstDay.getDay();
+    const firstDayOfWeek = (firstDay.getDay() + 6) % 7; // Shift Sunday (0) to the end of the week
     
     // Start from the beginning of the week containing the 1st
     const calendarStart = new Date(firstDay);
@@ -176,10 +176,10 @@ const Calendar: React.FC = () => {
 
       await api.updateDoctorAvailability(user.id, availability);
       setIsEditMode(false);
-      alert('Availability saved successfully!');
+      alert('Η διαθεσιμότητα αποθηκεύτηκε επιτυχώς!');
     } catch (error) {
       console.error('Failed to save availability:', error);
-      alert('Failed to save availability');
+      alert('Αποτυχία αποθήκευσης διαθεσιμότητας');
     } finally {
       setSaving(false);
     }
@@ -309,12 +309,12 @@ const Calendar: React.FC = () => {
               
               <div className="mobile-day-content">
                 <div className="mobile-day-indicators">
-                  {isUnavailable && <span className="mobile-indicator" style={{backgroundColor: '#ffebee', color: '#c62828'}}>Unavailable</span>}
-                  {isHoliday && <span className="mobile-indicator" style={{backgroundColor: '#fff3e0', color: '#ef6c00'}}>Holiday</span>}
-                  {isOnCall && <span className="mobile-indicator" style={{backgroundColor: '#e3f2fd', color: '#1976d2'}}>On Call</span>}
-                  {day.isPublicHoliday && <span className="mobile-indicator" style={{backgroundColor: '#fff3e0', color: '#ef6c00'}}>Public Holiday</span>}
-                  {day.hasCardioSurgery && <span className="mobile-indicator" style={{backgroundColor: '#f3e5f5', color: '#7b1fa2'}}>Cardio Surgery</span>}
-                  {day.hasThoracicSurgery && <span className="mobile-indicator" style={{backgroundColor: '#e8f5e8', color: '#388e3c'}}>Thoracic Surgery</span>}
+                  {isUnavailable && <span className="mobile-indicator" style={{backgroundColor: '#ffebee', color: '#c62828'}}>Μη Διαθέσιμος</span>}
+                  {isHoliday && <span className="mobile-indicator" style={{backgroundColor: '#e0e0e0', color: '#616161'}}>Άδεια</span>}
+                  {isOnCall && <span className="mobile-indicator" style={{backgroundColor: '#ffebee', color: '#c62828'}}>📞 Εφημερία</span>}
+                  {day.isPublicHoliday && <span className="mobile-indicator" style={{backgroundColor: '#e0e0e0', color: '#616161'}}>Αργία</span>}
+                  {day.hasCardioSurgery && <span className="mobile-indicator" style={{backgroundColor: '#e3f2fd', color: '#1976d2'}}>ΚΧ</span>}
+                  {day.hasThoracicSurgery && <span className="mobile-indicator" style={{backgroundColor: '#e1f5fe', color: '#0277bd'}}>ΘΧ</span>}
                 </div>
                 
                 {availableDoctors.length > 0 ? (
@@ -328,11 +328,11 @@ const Calendar: React.FC = () => {
                       </span>
                     ))}
                     {availableDoctors.length > 6 && (
-                      <span className="mobile-doctor-chip">+{availableDoctors.length - 6} more</span>
+                      <span className="mobile-doctor-chip">+{availableDoctors.length - 6} ακόμα</span>
                     )}
                   </div>
                 ) : (
-                  <div className="mobile-no-doctors">No doctors available</div>
+                  <div className="mobile-no-doctors">Δεν υπάρχουν διαθέσιμοι ειδικευόμενοι</div>
                 )}
               </div>
             </div>
@@ -343,24 +343,24 @@ const Calendar: React.FC = () => {
   };
 
   if (loading) {
-    return <LoadingSpinner message="Loading calendar..." />;
+    return <LoadingSpinner message="Φόρτωση ημερολογίου..." />;
   }
 
   const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    'Ιανουάριος', 'Φεβρουάριος', 'Μάρτιος', 'Απρίλιος', 'Μάιος', 'Ιούνιος',
+    'Ιούλιος', 'Αύγουστος', 'Σεπτέμβριος', 'Οκτώβριος', 'Νοέμβριος', 'Δεκέμβριος'
   ];
 
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const dayNames = ['Δευ', 'Τρι', 'Τετ', 'Πεμ', 'Παρ', 'Σαβ', 'Κυρ'];
 
   return (
-    <div>
+    <div className='box-around'>
       <Row className="mb-4">
         <Col>
-          <h2>Schedule Calendar</h2>
+          <h2>Διαθεσιμότητα</h2>
           {user?.role === 'viewer' && (
             <Alert variant="info">
-              You have view-only access. The final schedule will appear here when available.
+              Έχετε δικαιώματα μόνο προβολής. Το τελικό πρόγραμμα εφημεριών θα εμφανιστεί εδώ όταν είναι διαθέσιμο.
             </Alert>
           )}
           {(user?.role === 'doctor' || user?.role === 'manager') && (
@@ -368,15 +368,15 @@ const Calendar: React.FC = () => {
               <div className="mb-2 mb-sm-0">
                 {isEditMode ? (
                   <>
-                    <strong>Edit Mode:</strong> 
-                    <span className="d-none d-sm-inline"> Click on calendar days to set your availability. Don't forget to save your changes!</span>
-                    <span className="d-sm-none"> Tap days to set availability.</span>
+                    <strong>Λειτουργία Επεξεργασίας:</strong> 
+                    <span className="d-none d-sm-inline"> Κάνε κλικ στις ημέρες για να ορίσεις τη διαθεσιμότητά σου. Μην ξεχάσεις να αποθηκεύσεις τις αλλαγές!</span>
+                    <span className="d-sm-none"> Πατήστε ημέρες για ορισμό διαθεσιμότητας.</span>
                   </>
                 ) : (
                   <>
-                    <strong>View Mode:</strong> 
-                    <span className="d-none d-sm-inline"> Your availability is set. Click "Edit Availability" to make changes.</span>
-                    <span className="d-sm-none"> Tap to edit availability.</span>
+                    <strong>Λειτουργία Προβολής:</strong> 
+                    <span className="d-none d-sm-inline"> Η διαθεσιμότητά σου έχει οριστεί. Κάνε κλικ "Επεξεργασία Διαθεσιμότητας" για αλλαγές.</span>
+                    <span className="d-sm-none"> Πάτησε για επεξεργασία της διαθεσιμότητας σου.</span>
                   </>
                 )}
               </div>
@@ -386,8 +386,8 @@ const Calendar: React.FC = () => {
                 size="sm"
                 className="align-self-end align-self-sm-center"
               >
-                {isEditMode ? "Exit Edit" : "Edit"}
-                <span className="d-none d-sm-inline"> {isEditMode ? "Mode" : "Availability"}</span>
+                {isEditMode ? "Έξοδος" : "Επεξεργασία"}
+                <span className="d-none d-sm-inline"> {isEditMode ? "" : "Διαθεσιμότητας"}</span>
               </Button>
             </Alert>
           )}
@@ -397,7 +397,7 @@ const Calendar: React.FC = () => {
       <Card className="calendar-container">
         <Card.Header className="d-flex justify-content-between align-items-center">
           <Button variant="outline-primary" size="sm" onClick={prevMonth}>
-            <span className="d-none d-sm-inline">← Previous</span>
+            <span className="d-none d-sm-inline">← Προηγούμενος</span>
             <span className="d-sm-none">←</span>
           </Button>
           <h4 className="mb-0 text-center">
@@ -409,7 +409,7 @@ const Calendar: React.FC = () => {
             </span>
           </h4>
           <Button variant="outline-primary" size="sm" onClick={nextMonth}>
-            <span className="d-none d-sm-inline">Next →</span>
+            <span className="d-none d-sm-inline">Επόμενος →</span>
             <span className="d-sm-none">→</span>
           </Button>
         </Card.Header>
@@ -457,10 +457,10 @@ const Calendar: React.FC = () => {
                       {/* Show surgery indicators */}
                       <div className="day-indicators">
                         {dayData.hasCardioSurgery && (
-                          <span className="surgery-indicator cardio" title="Cardio Surgery">♥</span>
+                          <span className="surgery-indicator cardio" title="Καρδιοχειρουργική">♥</span>
                         )}
                         {dayData.hasThoracicSurgery && (
-                          <span className="surgery-indicator thoracic" title="Thoracic Surgery">🫁</span>
+                          <span className="surgery-indicator thoracic" title="Θωρακοχειρουργική">🫁</span>
                         )}
                       </div>
                       
@@ -471,7 +471,7 @@ const Calendar: React.FC = () => {
                           overlay={
                             <Tooltip id={`tooltip-${dayData.date}`}>
                               <div className="text-start">
-                                <strong>Available Doctors:</strong>
+                                <strong>Διαθέσιμοι Ειδικευόμενοι:</strong>
                                 <br />
                                 {availableDoctors.map((doctor, index) => (
                                   <div key={doctor.id}>
@@ -521,13 +521,13 @@ const Calendar: React.FC = () => {
           <Card.Footer>
             <div className="d-flex justify-content-between align-items-center">
               <div>
-                <Badge bg="danger" className="me-2">■</Badge> Unavailable
-                <Badge bg="warning" className="me-2 ms-3">■</Badge> Holiday
-                <Badge bg="info" className="me-2 ms-3">●</Badge> On Call
-                <Badge bg="warning" className="me-2 ms-3">★</Badge> Public Holiday
-                <Badge bg="success" className="me-2 ms-3">●</Badge> Available Doctors
-                <span className="me-2 ms-3" style={{color: '#7b1fa2'}}>♥</span> Cardio Surgery
-                <span className="me-2 ms-3" style={{color: '#388e3c'}}>🫁</span> Thoracic Surgery
+                <Badge bg="danger" className="me-2">■</Badge> Μη Διαθέσιμος
+                <Badge bg="secondary" className="me-2 ms-3">■</Badge> Άδεια
+                <Badge bg="danger" className="me-2 ms-3">●</Badge> 📞 Εφημερία
+                <Badge bg="secondary" className="me-2 ms-3">★</Badge> Αργία
+                <Badge bg="success" className="me-2 ms-3">●</Badge> Διαθέσιμοι Ειδικευόμενοι
+                <span className="me-2 ms-3" style={{color: '#1976d2'}}>♥</span> ΚΧ (Καρδιοχειρουργική)
+                <span className="me-2 ms-3" style={{color: '#0277bd'}}>🫁</span> ΘΧ (Θωρακοχειρουργική)
               </div>
               {isEditMode && (
                 <Button 
@@ -537,7 +537,7 @@ const Calendar: React.FC = () => {
                   size="lg"
                   className="fw-bold"
                 >
-                  {saving ? 'Saving Changes...' : 'Save Availability'}
+                  {saving ? 'Αποθήκευση Αλλαγών...' : 'Αποθήκευση Διαθεσιμότητας'}
                 </Button>
               )}
             </div>
@@ -548,28 +548,28 @@ const Calendar: React.FC = () => {
       {/* Day selection modal */}
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>Set Availability for {selectedDate}</Modal.Title>
+          <Modal.Title>Διαθεσιμότητα για {selectedDate}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p>How would you like to mark this day?</p>
+          <p>Πώς θέλετε να σημειώσετε αυτή την ημέρα;</p>
           <div className="d-grid gap-2">
             <Button 
               variant="success" 
               onClick={() => handleAvailabilityUpdate('available')}
             >
-              Available for Shifts
+              Διαθέσιμος/η για Εφημερία
             </Button>
             <Button 
               variant="danger" 
               onClick={() => handleAvailabilityUpdate('unavailable')}
             >
-              Unavailable for Shifts
+              Μη Διαθέσιμος/η για Εφημερία
             </Button>
             <Button 
               variant="warning" 
               onClick={() => handleAvailabilityUpdate('holiday')}
             >
-              Personal Holiday
+              Προσωπική Άδεια
             </Button>
           </div>
         </Modal.Body>

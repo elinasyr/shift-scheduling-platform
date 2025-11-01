@@ -8,7 +8,7 @@ interface LoadingSpinnerProps {
 }
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ 
-  message = 'Loading...', 
+  message = 'Φόρτωση...', 
   size,
   variant = 'primary'
 }) => {

@@ -8,13 +8,13 @@ const Dashboard: React.FC = () => {
   const getWelcomeMessage = () => {
     switch (user?.role) {
       case 'doctor':
-        return 'Welcome to your scheduling dashboard. Use the calendar to set your availability.';
+        return 'Καλώς ήρθατε στον πίνακα εφημεριών σας. Χρησιμοποιήστε το ημερολόγιο για να ορίσετε τη διαθεσιμότητά σας.';
       case 'manager':
-        return 'Welcome to the management dashboard. You can manage schedules and doctors from here.';
+        return 'Καλώς ήρθατε στον πίνακα διαχείρισης. Μπορείτε να διαχειριστείτε τα προγράμματα εφημεριών και τους ειδικευόμενους από εδώ.';
       case 'viewer':
-        return 'Welcome! You can view the finalized schedules when they become available.';
+        return 'Καλώς ήρθατε! Μπορείτε να δείτε τα οριστικοποιημένα προγράμματα εφημεριών όταν γίνουν διαθέσιμα.';
       default:
-        return 'Welcome to the scheduling system.';
+        return 'Καλώς ήρθατε στο σύστημα διαχείρισης εφημεριών.';
     }
   };
 
@@ -23,22 +23,22 @@ const Dashboard: React.FC = () => {
     
     if (user?.role === 'doctor' || user?.role === 'manager') {
       actions.push(
-        { title: 'Set Availability', description: 'Update your availability for shifts', link: '/' },
-        { title: 'View Profile', description: 'Update your profile information', link: '/profile' },
-        { title: 'View Schedule', description: 'Check the current schedule', link: '/schedule' }
+        { title: 'Ορισμός Διαθεσιμότητας', description: 'Ενημερώστε τη διαθεσιμότητά σας για εφημερίες', link: '/' },
+        { title: 'Προβολή Προφίλ', description: 'Ενημερώστε τις πληροφορίες του προφίλ σας', link: '/profile' },
+        { title: 'Προβολή Προγράμματος', description: 'Ελέγξτε το τρέχον πρόγραμμα εφημεριών', link: '/schedule' }
       );
     }
 
     if (user?.role === 'manager') {
       actions.push(
-        { title: 'Manage Doctors', description: 'View and edit doctor information', link: '/doctors' },
-        { title: 'Manager Dashboard', description: 'Generate and manage schedules', link: '/manager' }
+        { title: 'Διαχείριση Ειδικευομένων', description: 'Προβολή και επεξεργασία πληροφοριών ειδικευομένων', link: '/doctors' },
+        { title: 'Πίνακας Διαχείρισης', description: 'Δημιουργία και διαχείριση προγραμμάτων εφημεριών', link: '/manager' }
       );
     }
 
     if (user?.role === 'viewer') {
       actions.push(
-        { title: 'View Schedule', description: 'View the finalized schedule', link: '/schedule' }
+        { title: 'Προβολή Προγράμματος', description: 'Δείτε το οριστικοποιημένο πρόγραμμα εφημεριών', link: '/schedule' }
       );
     }
 
@@ -49,9 +49,9 @@ const Dashboard: React.FC = () => {
     <div>
       <Row className="mb-4">
         <Col>
-          <h2>Dashboard</h2>
+          <h2>Πίνακας Ελέγχου</h2>
           <p className="text-muted">
-            Welcome back, {user?.firstName} {user?.lastName}
+            Καλώς ήρθατε, {user?.firstName} {user?.lastName}
           </p>
         </Col>
       </Row>
@@ -66,7 +66,7 @@ const Dashboard: React.FC = () => {
                 </Badge>
               </div>
               <div>
-                <strong>Your Role: {user?.role}</strong>
+                <strong>Ο Ρόλος σας: {user?.role}</strong>
                 <br />
                 {getWelcomeMessage()}
               </div>
@@ -77,7 +77,7 @@ const Dashboard: React.FC = () => {
 
       <Row className="mb-4">
         <Col>
-          <h4>Quick Actions</h4>
+          <h4>Γρήγορες Ενέργειες</h4>
         </Col>
       </Row>
 
@@ -91,7 +91,7 @@ const Dashboard: React.FC = () => {
                   {action.description}
                 </Card.Text>
                 <a href={action.link} className="btn btn-outline-primary btn-sm">
-                  Go to {action.title}
+                  Μετάβαση σε {action.title}
                 </a>
               </Card.Body>
             </Card>
@@ -106,18 +106,18 @@ const Dashboard: React.FC = () => {
               <Card.Body>
                 <Row>
                   <Col md={6}>
-                    <h6>Your Information</h6>
-                    <p className="mb-1"><strong>Specialty:</strong> {user.specialty || 'Not specified'}</p>
-                    {user.rotationType && <p className="mb-1"><strong>Rotation Type:</strong> {user.rotationType}</p>}
-                    {user.category && <p className="mb-1"><strong>Category:</strong> {user.category}</p>}
-                    {user.isNew && <p className="mb-1"><Badge bg="success">New Doctor</Badge></p>}
+                    <h6>Οι Πληροφορίες σας</h6>
+                    <p className="mb-1"><strong>Τύπος Χειρουργείων:</strong> {user.specialty || 'Δεν έχει οριστεί'}</p>
+                    {user.rotationType && <p className="mb-1"><strong>Τύπος Rotation:</strong> {user.rotationType}</p>}
+                    {user.category && <p className="mb-1"><strong>Κατηγορία:</strong> {user.category}</p>}
+                    {user.isNew && <p className="mb-1"><Badge bg="success">Νέος Ειδικευόμενος</Badge></p>}
                     <p className="mb-1"><strong>Email:</strong> {user.email}</p>
                   </Col>
                   <Col md={6}>
-                    <h6>Quick Stats</h6>
-                    <p className="mb-1">Role: <Badge bg="secondary">{user.role}</Badge></p>
+                    <h6>Γρήγορα Στατιστικά</h6>
+                    <p className="mb-1">Ρόλος: <Badge bg="secondary">{user.role}</Badge></p>
                     <p className="mb-1">
-                      Account Created: {new Date(user.createdAt).toLocaleDateString()}
+                      Λογαριασμός Δημιουργήθηκε: {new Date(user.createdAt).toLocaleDateString('el-GR')}
                     </p>
                   </Col>
                 </Row>

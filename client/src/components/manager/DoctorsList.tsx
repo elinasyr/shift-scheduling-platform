@@ -36,7 +36,7 @@ const DoctorsList: React.FC = () => {
       setDoctors(doctorsData);
     } catch (error) {
       console.error('Failed to load doctors:', error);
-      setError('Failed to load doctors');
+      setError('Αποτυχία φόρτωσης ειδικευομένων');
     } finally {
       setLoading(false);
     }
@@ -95,7 +95,7 @@ const DoctorsList: React.FC = () => {
       setSaving(true);
       
       await api.updateDoctor(editingDoctor.id, formData);
-      setSuccess('Doctor updated successfully!');
+      setSuccess('Ο ειδικευόμενος ενημερώθηκε επιτυχώς!');
       
       // Reload doctors list
       await loadDoctors();
@@ -104,27 +104,27 @@ const DoctorsList: React.FC = () => {
         handleClose();
       }, 1500);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update doctor');
+      setError(err.response?.data?.message || 'Αποτυχία ενημέρωσης ειδικευόμενου');
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (doctorId: string) => {
-    if (!window.confirm('Are you sure you want to delete this doctor? This action cannot be undone.')) {
+    if (!window.confirm('Είστε σίγουροι ότι θέλετε να διαγράψετε αυτόν τον ειδικευόμενο; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.')) {
       return;
     }
 
     try {
       await api.deleteDoctor(doctorId);
-      setSuccess('Doctor deleted successfully!');
+      setSuccess('Ο ειδικευόμενος διαγράφηκε επιτυχώς!');
       await loadDoctors();
       
       setTimeout(() => {
         setSuccess('');
       }, 3000);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete doctor');
+      setError(err.response?.data?.message || 'Αποτυχία διαγραφής ειδικευόμενου');
       setTimeout(() => {
         setError('');
       }, 5000);
@@ -132,15 +132,15 @@ const DoctorsList: React.FC = () => {
   };
 
   if (loading) {
-    return <LoadingSpinner message="Loading doctors..." />;
+    return <LoadingSpinner message="Φόρτωση ειδικευομένων..." />;
   }
 
   return (
-    <div>
+    <div className='box-around'>
       <Row className="mb-4">
         <Col>
-          <h2>Doctors Management</h2>
-          <p className="text-muted">View and manage doctor information</p>
+          <h2>Διαχείριση Ειδικευομένων</h2>
+          <p className="text-muted">Προβολή και διαχείριση πληροφοριών ειδικευομένων</p>
         </Col>
       </Row>
 
@@ -149,7 +149,7 @@ const DoctorsList: React.FC = () => {
 
       <Card className="dashboard-card">
         <Card.Header>
-          <h5 className="mb-0">All Doctors ({doctors.length})</h5>
+          <h5 className="mb-0">Όλοι οι Ειδικευόμενοι ({doctors.length})</h5>
         </Card.Header>
         <Card.Body>
           {doctors.length > 0 ? (
@@ -159,14 +159,14 @@ const DoctorsList: React.FC = () => {
                 <Table responsive hover>
                   <thead>
                     <tr>
-                      <th>Name</th>
+                      <th>Όνομα</th>
                       <th>Email</th>
-                      <th>Role</th>
-                      <th>Specialty</th>
-                      <th>Rank</th>
-                      <th>Category</th>
-                      <th>Rotation Type</th>
-                      <th>Actions</th>
+                      <th>Ρόλος</th>
+                      <th>Χειρουργεία</th>
+                      <th>Βαθμίδα</th>
+                      <th>Κατηγορία</th>
+                      <th>Τύπος Rotation</th>
+                      <th>Ενέργειες</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -203,19 +203,19 @@ const DoctorsList: React.FC = () => {
                             {doctor.role}
                           </Badge>
                         </td>
-                        <td>{doctor.specialty || <span className="text-muted">Not specified</span>}</td>
+                        <td>{doctor.specialty || <span className="text-muted">Δεν έχει οριστεί</span>}</td>
                         <td>
                           <Badge bg={doctor.rank === 'senior' ? 'warning' : 'info'}>
-                            {doctor.rank || 'Not set'}
+                            {doctor.rank || 'Δεν έχει οριστεί'}
                           </Badge>
-                          {doctor.isNew && <Badge bg="success" className="ms-1">New</Badge>}
+                          {doctor.isNew && <Badge bg="success" className="ms-1">Νέος</Badge>}
                         </td>
                         <td>
                           <Badge bg={doctor.category === 'manager' ? 'primary' : 'secondary'}>
-                            {doctor.category || 'Not set'}
+                            {doctor.category || 'Δεν έχει οριστεί'}
                           </Badge>
                         </td>
-                        <td>{doctor.rotationType || <span className="text-muted">Not specified</span>}</td>
+                        <td>{doctor.rotationType || <span className="text-muted">Δεν έχει οριστεί</span>}</td>
                         <td>
                           <Button 
                             variant="outline-primary" 
@@ -223,14 +223,14 @@ const DoctorsList: React.FC = () => {
                             onClick={() => handleEdit(doctor)}
                             className="me-2"
                           >
-                            Edit
+                            Επεξεργασία
                           </Button>
                           <Button 
                             variant="outline-danger" 
                             size="sm" 
                             onClick={() => handleDelete(doctor.id)}
                           >
-                            Delete
+                            Διαγραφή
                           </Button>
                         </td>
                       </tr>
@@ -275,31 +275,31 @@ const DoctorsList: React.FC = () => {
                       
                       <Row className="mt-3">
                         <Col xs={6}>
-                          <small className="text-muted">Specialty:</small>
-                          <div>{doctor.specialty || <span className="text-muted">Not specified</span>}</div>
+                          <small className="text-muted">Τύπος χειρουργείων:</small>
+                          <div>{doctor.specialty || <span className="text-muted">Δεν έχει οριστεί</span>}</div>
                         </Col>
                         <Col xs={6}>
-                          <small className="text-muted">Rank:</small>
+                          <small className="text-muted">Βαθμίδα:</small>
                           <div>
                             <Badge bg={doctor.rank === 'senior' ? 'warning' : 'info'}>
-                              {doctor.rank || 'Not set'}
+                              {doctor.rank || 'Δεν έχει οριστεί'}
                             </Badge>
-                            {doctor.isNew && <Badge bg="success" className="ms-1">New</Badge>}
+                            {doctor.isNew && <Badge bg="success" className="ms-1">Νέος</Badge>}
                           </div>
                         </Col>
                       </Row>
                       <Row className="mt-2">
                         <Col xs={6}>
-                          <small className="text-muted">Category:</small>
+                          <small className="text-muted">Κατηγορία:</small>
                           <div>
                             <Badge bg={doctor.category === 'manager' ? 'primary' : 'secondary'}>
-                              {doctor.category || 'Not set'}
+                              {doctor.category || 'Δεν έχει οριστεί'}
                             </Badge>
                           </div>
                         </Col>
                         <Col xs={6}>
-                          <small className="text-muted">Rotation Type:</small>
-                          <div>{doctor.rotationType || <span className="text-muted">Not specified</span>}</div>
+                          <small className="text-muted">Τύπος Rotation:</small>
+                          <div>{doctor.rotationType || <span className="text-muted">Δεν έχει οριστεί</span>}</div>
                         </Col>
                       </Row>
                       
@@ -310,7 +310,7 @@ const DoctorsList: React.FC = () => {
                           onClick={() => handleEdit(doctor)}
                           className="flex-grow-1"
                         >
-                          Edit
+                          Επεξεργασία
                         </Button>
                         <Button 
                           variant="outline-danger" 
@@ -318,7 +318,7 @@ const DoctorsList: React.FC = () => {
                           onClick={() => handleDelete(doctor.id)}
                           className="flex-grow-1"
                         >
-                          Delete
+                          Διαγραφή
                         </Button>
                       </div>
                     </Card.Body>
@@ -328,7 +328,7 @@ const DoctorsList: React.FC = () => {
             </>
           ) : (
             <Alert variant="info">
-              No doctors found in the system.
+              Δεν βρέθηκαν ειδικευόμενοι στο σύστημα.
             </Alert>
           )}
         </Card.Body>
@@ -338,7 +338,7 @@ const DoctorsList: React.FC = () => {
       <Modal show={showModal} onHide={handleClose} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>
-            Edit information: {editingDoctor?.firstName} {editingDoctor?.lastName}
+            Επεξεργασία πληροφοριών: {editingDoctor?.firstName} {editingDoctor?.lastName}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
@@ -349,7 +349,7 @@ const DoctorsList: React.FC = () => {
             <Row>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label>First Name</Form.Label>
+                  <Form.Label>Όνομα</Form.Label>
                   <Form.Control
                     type="text"
                     name="firstName"
@@ -361,7 +361,7 @@ const DoctorsList: React.FC = () => {
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Last Name</Form.Label>
+                  <Form.Label>Επώνυμο</Form.Label>
                   <Form.Control
                     type="text"
                     name="lastName"
@@ -387,30 +387,30 @@ const DoctorsList: React.FC = () => {
             <Row>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Role</Form.Label>
+                  <Form.Label>Ρόλος</Form.Label>
                   <Form.Select 
                     name="role" 
                     value={formData.role} 
                     onChange={handleChange}
                     required
                   >
-                    <option value="doctor">Doctor</option>
-                    <option value="manager">Manager & Doctor</option>
+                    <option value="doctor">Ειδικευόμενος</option>
+                    <option value="manager">Διαχειριστής & Ειδικευόμενος</option>
                   </Form.Select>
                 </Form.Group>
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Specialty</Form.Label>
+                  <Form.Label>Τύπος Χειρουργείων</Form.Label>
                   <Form.Select 
                     name="specialty" 
                     value={formData.specialty} 
                     onChange={handleChange}
                     required
                   >
-                    <option value="cardiology">Cardiology</option>
-                    <option value="thoracic">Thoracic</option>
-                    <option value="general">General</option>
+                    <option value="cardiology">Καρδιολογία</option>
+                    <option value="thoracic">Θωρακική</option>
+                    <option value="general">Γενική</option>
                   </Form.Select>
                 </Form.Group>
               </Col>
@@ -419,47 +419,47 @@ const DoctorsList: React.FC = () => {
             <Row>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Rank (Seniority Level)</Form.Label>
+                  <Form.Label>Βαθμίδα (Επίπεδο Αρχαιότητας)</Form.Label>
                   <Form.Select 
                     name="rank" 
                     value={formData.rank} 
                     onChange={handleChange}
                     required
                   >
-                    <option value="junior">Junior</option>
-                    <option value="senior">Senior</option>
+                    <option value="junior">Μικρός</option>
+                    <option value="senior">Μεγάλος</option>
                   </Form.Select>
                 </Form.Group>
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Category (Access Level)</Form.Label>
+                  <Form.Label>Κατηγορία (Επίπεδο Πρόσβασης)</Form.Label>
                   <Form.Select 
                     name="category" 
                     value={formData.category} 
                     onChange={handleChange}
                     required
                   >
-                    <option value="doctor">Doctor</option>
-                    <option value="manager">Manager</option>
-                    <option value="viewer">Viewer</option>
+                    <option value="doctor">Ειδικευόμενος</option>
+                    <option value="manager">Διαχειριστής</option>
+                    <option value="viewer">Θεατής</option>
                   </Form.Select>
                 </Form.Group>
               </Col>
             </Row>
 
             <Form.Group className="mb-3">
-              <Form.Label>Rotation Type</Form.Label>
+              <Form.Label>Τύπος Rotation</Form.Label>
               <Form.Select 
                 name="rotationType" 
                 value={formData.rotationType} 
                 onChange={handleChange}
                 required
               >
-                <option value="internal">Regular</option>
-                <option value="visiting">Visiting from other hospital</option>
-                <option value="abroad">Internship abroad</option>
-                <option value="outside">Doctors outside of Attikon</option>
+                <option value="internal">Κανονικός</option>
+                <option value="visiting">Επισκέπτης από άλλο νοσοκομείο</option>
+                <option value="abroad">Πρακτική στο εξωτερικό</option>
+                <option value="outside">Ειδικευόμενοι εκτός Αττικόν</option>
               </Form.Select>
             </Form.Group>
 
@@ -470,7 +470,7 @@ const DoctorsList: React.FC = () => {
                   name="isNew"
                   checked={formData.isNew}
                   onChange={(e) => setFormData(prev => ({ ...prev, isNew: e.target.checked }))}
-                  label="Is New Doctor"
+                  label="Είναι Νέος Ειδικευόμενος"
                 />
               </Form.Group>
             )}
@@ -478,14 +478,14 @@ const DoctorsList: React.FC = () => {
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={handleClose}>
-            Cancel
+            Ακύρωση
           </Button>
           <Button 
             variant="primary" 
             onClick={handleSubmit}
             disabled={saving}
           >
-            {saving ? 'Saving...' : 'Save Changes'}
+            {saving ? 'Αποθήκευση...' : 'Αποθήκευση Αλλαγών'}
           </Button>
         </Modal.Footer>
       </Modal>
@@ -496,7 +496,7 @@ const DoctorsList: React.FC = () => {
           <Card className="dashboard-card text-center">
             <Card.Body>
               <h3 className="text-primary">{doctors.length}</h3>
-              <small className="text-muted">Total Doctors</small>
+              <small className="text-muted">Σύνολο Ειδικευομένων</small>
             </Card.Body>
           </Card>
         </Col>
@@ -506,7 +506,7 @@ const DoctorsList: React.FC = () => {
               <h3 className="text-success">
                 {doctors.filter(d => d.role === 'manager').length}
               </h3>
-              <small className="text-muted">Managers</small>
+              <small className="text-muted">Διαχειριστές</small>
             </Card.Body>
           </Card>
         </Col>
@@ -516,7 +516,7 @@ const DoctorsList: React.FC = () => {
               <h3 className="text-info">
                 {doctors.filter(d => d.specialty).length}
               </h3>
-              <small className="text-muted">With Specialties</small>
+              <small className="text-muted">Με Ειδικότητες</small>
             </Card.Body>
           </Card>
         </Col>
@@ -526,7 +526,7 @@ const DoctorsList: React.FC = () => {
               <h3 className="text-warning">
                 {new Set(doctors.map(d => d.specialty).filter(Boolean)).size}
               </h3>
-              <small className="text-muted">Unique Specialties</small>
+              <small className="text-muted">Μοναδικές Ειδικότητες</small>
             </Card.Body>
           </Card>
         </Col>

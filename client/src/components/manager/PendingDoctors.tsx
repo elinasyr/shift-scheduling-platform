@@ -30,7 +30,7 @@ const PendingDoctors: React.FC = () => {
       setPendingDoctors(doctors);
     } catch (error) {
       console.error('Failed to load pending doctors:', error);
-      setError('Failed to load pending doctors');
+      setError('Αποτυχία φόρτωσης ειδικευομένων σε αναμονή');
     } finally {
       setLoading(false);
     }
@@ -51,7 +51,7 @@ const PendingDoctors: React.FC = () => {
       setError('');
       await api.approveDoctor(selectedDoctor.id, approvalData);
       
-      setMessage(`${selectedDoctor.firstName} ${selectedDoctor.lastName} has been approved successfully!`);
+      setMessage(`${selectedDoctor.firstName} ${selectedDoctor.lastName} εγκρίθηκε επιτυχώς!`);
       setShowApprovalModal(false);
       
       // Reload pending doctors
@@ -67,7 +67,7 @@ const PendingDoctors: React.FC = () => {
       });
       
     } catch (error: any) {
-      setError(error.response?.data?.error || 'Failed to approve doctor');
+      setError(error.response?.data?.error || 'Αποτυχία έγκρισης ειδικευόμενου');
     } finally {
       setSubmitting(false);
     }
@@ -85,7 +85,7 @@ const PendingDoctors: React.FC = () => {
     return (
       <div className="text-center py-4">
         <Spinner animation="border" />
-        <p className="mt-2">Loading pending approvals...</p>
+        <p className="mt-2">Φόρτωση εγκρίσεων σε αναμονή...</p>
       </div>
     );
   }
@@ -94,7 +94,7 @@ const PendingDoctors: React.FC = () => {
     <>
       <Card className="dashboard-card">
         <Card.Header>
-          <h5 className="mb-0">Pending Doctor Approvals</h5>
+          <h5 className="mb-0">Εγκρίσεις Ειδικευομένων σε Αναμονή</h5>
         </Card.Header>
         <Card.Body>
           {message && <Alert variant="success">{message}</Alert>}
@@ -102,7 +102,7 @@ const PendingDoctors: React.FC = () => {
 
           {pendingDoctors.length === 0 ? (
             <div className="text-center py-4">
-              <p className="text-muted">No pending approvals.</p>
+              <p className="text-muted">Δεν υπάρχουν εγκρίσεις σε αναμονή.</p>
             </div>
           ) : (
             <>
@@ -110,11 +110,11 @@ const PendingDoctors: React.FC = () => {
                 <Table striped hover>
                   <thead>
                     <tr>
-                      <th>Name</th>
+                      <th>Όνομα</th>
                       <th>Email</th>
-                      <th>Username</th>
-                      <th>Registered</th>
-                      <th>Actions</th>
+                      <th>Όνομα Χρήστη</th>
+                      <th>Εγγραφή</th>
+                      <th>Ενέργειες</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -126,7 +126,7 @@ const PendingDoctors: React.FC = () => {
                         <td>{doctor.email}</td>
                         <td>{doctor.username}</td>
                         <td>
-                          {doctor.createdAt ? new Date(doctor.createdAt).toLocaleDateString() : 'N/A'}
+                          {doctor.createdAt ? new Date(doctor.createdAt).toLocaleDateString('el-GR') : 'Μ/Δ'}
                         </td>
                         <td>
                           <Button
@@ -134,7 +134,7 @@ const PendingDoctors: React.FC = () => {
                             size="sm"
                             onClick={() => handleApprovalClick(doctor)}
                           >
-                            Approve
+                            Έγκριση
                           </Button>
                         </td>
                       </tr>
@@ -148,7 +148,7 @@ const PendingDoctors: React.FC = () => {
                 {pendingDoctors.map((doctor) => (
                   <div key={doctor.id} className="mobile-table-card">
                     <div className="mobile-table-row">
-                      <span className="mobile-table-label">Name:</span>
+                      <span className="mobile-table-label">Όνομα:  </span>
                       <span className="mobile-table-value">
                         <strong>{doctor.firstName} {doctor.lastName}</strong>
                       </span>
@@ -158,24 +158,24 @@ const PendingDoctors: React.FC = () => {
                       <span className="mobile-table-value">{doctor.email}</span>
                     </div>
                     <div className="mobile-table-row">
-                      <span className="mobile-table-label">Username:</span>
+                      <span className="mobile-table-label">Όνομα Χρήστη:  </span>
                       <span className="mobile-table-value">{doctor.username}</span>
                     </div>
                     <div className="mobile-table-row">
-                      <span className="mobile-table-label">Registered:</span>
+                      <span className="mobile-table-label">Εγγραφή:  </span>
                       <span className="mobile-table-value">
-                        {doctor.createdAt ? new Date(doctor.createdAt).toLocaleDateString() : 'N/A'}
+                        {doctor.createdAt ? new Date(doctor.createdAt).toLocaleDateString('el-GR') : 'Μ/Δ'}
                       </span>
                     </div>
                     <div className="mobile-table-row">
-                      <span className="mobile-table-label">Actions:</span>
+                      <span className="mobile-table-label">Ενέργειες:  </span>
                       <span className="mobile-table-value">
                         <Button
                           variant="primary"
                           size="sm"
                           onClick={() => handleApprovalClick(doctor)}
                         >
-                          Approve
+                          Έγκριση
                         </Button>
                       </span>
                     </div>
@@ -190,57 +190,57 @@ const PendingDoctors: React.FC = () => {
       {/* Approval Modal */}
       <Modal show={showApprovalModal} onHide={() => setShowApprovalModal(false)} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Approve Doctor</Modal.Title>
+          <Modal.Title>Έγκριση Ειδικευόμενου</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {selectedDoctor && (
             <>
               <p>
-                <strong>Approving:</strong> {selectedDoctor.firstName} {selectedDoctor.lastName}
+                <strong>Έγκριση:</strong> {selectedDoctor.firstName} {selectedDoctor.lastName}
               </p>
               
               {error && <Alert variant="danger">{error}</Alert>}
 
               <Form>
                 <Form.Group className="mb-3">
-                  <Form.Label>Category</Form.Label>
+                  <Form.Label>Κατηγορία</Form.Label>
                   <Form.Select
                     name="role"
                     value={approvalData.role}
                     onChange={handleInputChange}
                     required
                   >
-                    <option value="doctor">Junior</option>
-                    <option value="manager">Senior</option>
+                    <option value="doctor">Μικρός</option>
+                    <option value="manager">Μεγάλος</option>
                   </Form.Select>
                 </Form.Group>
 
                 <Form.Group className="mb-3">
-                  <Form.Label>Specialty</Form.Label>
+                  <Form.Label>Τύπος Χειρουργείων</Form.Label>
                   <Form.Select
                     name="specialty"
                     value={approvalData.specialty}
                     onChange={handleInputChange}
                     required
                   >
-                    <option value="general">General</option>
-                    <option value="cardiology">Cardiology</option>
-                    <option value="thoracic">Thoracic</option>
+                    <option value="general">Γενική</option>
+                    <option value="cardiology">Καρδιολογία</option>
+                    <option value="thoracic">Θωρακική</option>
                   </Form.Select>
                 </Form.Group>
 
                 <Form.Group className="mb-3">
-                  <Form.Label>Rotation Type</Form.Label>
+                  <Form.Label>Τύπος Rotation</Form.Label>
                   <Form.Select
                     name="rotationType"
                     value={approvalData.rotationType}
                     onChange={handleInputChange}
                     required
                   >
-                    <option value="internal">Regular</option>
-                    <option value="visiting">Visiting from other hospital</option>
-                    <option value="abroad">Internship abroad</option>
-                    <option value="outside">Doctors outside of Attikon</option>
+                    <option value="internal">Κανονικός</option>
+                    <option value="visiting">Επισκέπτης από άλλο νοσοκομείο</option>
+                    <option value="abroad">Πρακτική στο εξωτερικό</option>
+                    <option value="outside">Ειδικευόμενοι εκτός Αττικόν</option>
                   </Form.Select>
                 </Form.Group>
 
@@ -251,7 +251,7 @@ const PendingDoctors: React.FC = () => {
                       name="isNew"
                       checked={approvalData.isNew || false}
                       onChange={(e) => setApprovalData(prev => ({ ...prev, isNew: e.target.checked }))}
-                      label="Is New Doctor"
+                      label="Είναι Νέος Ειδικευόμενος"
                     />
                   </Form.Group>
                 )}
@@ -261,14 +261,14 @@ const PendingDoctors: React.FC = () => {
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowApprovalModal(false)}>
-            Cancel
+            Ακύρωση
           </Button>
           <Button
             variant="primary"
             onClick={handleApproval}
             disabled={submitting}
           >
-            {submitting ? 'Approving...' : 'Approve Doctor'}
+            {submitting ? 'Έγκριση...' : 'Έγκριση Ειδικευόμενου'}
           </Button>
         </Modal.Footer>
       </Modal>

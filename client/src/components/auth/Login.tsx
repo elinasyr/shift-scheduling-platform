@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Container, Card, Form, Button, Alert, Row, Col } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import Logo from '../common/Logo';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -16,7 +17,7 @@ const Login: React.FC = () => {
     e.preventDefault();
     
     if (!email || !password) {
-      setError('Please fill in all fields');
+      setError('Παρακαλώ συμπληρώστε όλα τα πεδία');
       return;
     }
 
@@ -26,7 +27,7 @@ const Login: React.FC = () => {
       await login(email, password);
       navigate('/');
     } catch (err: any) {
-      setError(err.message || 'Failed to login');
+      setError(err.message || 'Αποτυχία σύνδεσης');
     } finally {
       setIsLoading(false);
     }
@@ -39,26 +40,19 @@ const Login: React.FC = () => {
           <Col xs={12} sm={10} md={8} lg={6} xl={4}>
             <Card className="auth-card">
               <div className="auth-logo">
-                <img 
-                  src="/logo.jpg" 
-                  alt="Hospital Logo"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                  }}
-                />
-                <h2 className="mt-3 text-center">Welcome Back</h2>
-                <p className="text-muted text-center">Sign in to your account</p>
+                <Logo />
+                <h2 className="mt-3 text-center">Καλώς ήρθατε</h2>
+                <p className="text-muted text-center">Συνδεθείτε στο λογαριασμό σας</p>
               </div>
 
               {error && <Alert variant="danger">{error}</Alert>}
 
               <Form onSubmit={handleSubmit}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Email Address</Form.Label>
+                  <Form.Label>Email</Form.Label>
                   <Form.Control
                     type="email"
-                    placeholder="Enter your email"
+                    placeholder="Εισάγετε το email σας"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -66,10 +60,10 @@ const Login: React.FC = () => {
                 </Form.Group>
 
                 <Form.Group className="mb-4">
-                  <Form.Label>Password</Form.Label>
+                  <Form.Label>Κωδικός</Form.Label>
                   <Form.Control
                     type="password"
-                    placeholder="Enter your password"
+                    placeholder="Εισάγετε τον κωδικό σας"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -81,15 +75,15 @@ const Login: React.FC = () => {
                   className="w-100 mb-3" 
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Signing In...' : 'Sign In'}
+                  {isLoading ? 'Σύνδεση...' : 'Σύνδεση'}
                 </Button>
               </Form>
 
               <div className="text-center">
                 <p className="mb-0">
-                  Don't have an account?{' '}
+                  Δεν έχετε λογαριασμό;{' '}
                   <Link to="/signup" className="text-decoration-none">
-                    Sign up here
+                    Εγγραφείτε εδώ
                   </Link>
                 </p>
               </div>

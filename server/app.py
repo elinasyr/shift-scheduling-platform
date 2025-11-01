@@ -350,25 +350,34 @@ def signup():
     """Register a new user"""
     try:
         data = request.json
-        
+        print(data)
         # Validate required fields - removed role, specialty, rank
-        required_fields = ['firstName', 'lastName', 'username', 'email', 'password']
+        required_fields = ['firstName', 'lastName','email', 'password']
         for field in required_fields:
             if field not in data or not data[field]:
                 return jsonify({'error': f'{field} is required'}), 400
         
-        # Check if username or email already exists
-        if Doctor.query.filter_by(username=data['username']).first():
-            return jsonify({'error': 'Username already exists'}), 400
-        
+        # Check if email already exists
         if Doctor.query.filter_by(email=data['email']).first():
+            print('Email exists')
             return jsonify({'error': 'Email already exists'}), 400
         
+        # Generate username from email (before @ sign)
+        username = data['email'].split('@')[0]
+        
+        # Check if username already exists, if so append a number
+        base_username = username
+        counter = 1
+        while Doctor.query.filter_by(username=username).first():
+            username = f"{base_username}{counter}"
+            counter += 1
+        
+        print('Creating doctor')
         # Create new doctor - all new users start as unapproved (viewer role)
         doctor = Doctor(
             first_name=data['firstName'],
             last_name=data['lastName'],
-            username=data['username'],
+            username=username,
             email=data['email'],
             rotation_type=None,  # Will be set by manager
             rank=None,  # Will be set by manager
@@ -378,7 +387,7 @@ def signup():
         )
         
         doctor.set_password(data['password'])
-        
+        print(doctor, '===')
         db.session.add(doctor)
         db.session.commit()
         
@@ -747,12 +756,11 @@ def get_availability(doctor_id):
         Availability.date >= start_date,
         Availability.date <= end_date
     ).all()
-    
+
     # Convert to dictionary with date as key
     result = {}
     for avail in availabilities:
-        result[avail.date.isoformat()] = avail.status.value
-    
+        result[avail.date.isoformat()] = avail.status.value    
     return jsonify({
         "doctorId": doctor_id,
         "startDate": start_date.isoformat(),

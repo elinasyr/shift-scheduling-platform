@@ -38,7 +38,7 @@ const HospitalScheduleManager: React.FC = () => {
       generateCalendarDays(startDate, endDate, schedule);
     } catch (error) {
       console.error('Failed to load hospital schedule:', error);
-      setError('Failed to load hospital schedule');
+      setError('Αποτυχία φόρτωσης προγράμματος νοσοκομείου');
     }
   };
 
@@ -49,7 +49,7 @@ const HospitalScheduleManager: React.FC = () => {
     // Generate 6 weeks (42 days) for the calendar grid
     const firstDay = new Date(startDate);
     firstDay.setDate(1);
-    const firstDayOfWeek = firstDay.getDay();
+    const firstDayOfWeek = (firstDay.getDay() + 6) % 7; // Shift Sunday (0) to the end of the week
     
     // Start from the beginning of the week containing the 1st
     const calendarStart = new Date(firstDay);
@@ -100,14 +100,14 @@ const HospitalScheduleManager: React.FC = () => {
         ...scheduleData
       });
       
-      setMessage('Hospital schedule updated successfully!');
+      setMessage('Το πρόγραμμα νοσοκομείου ενημερώθηκε επιτυχώς!');
       setShowModal(false);
       
       // Reload schedule
       await loadHospitalSchedule();
       
     } catch (error: any) {
-      setError(error.response?.data?.error || 'Failed to update hospital schedule');
+      setError(error.response?.data?.error || 'Αποτυχία ενημέρωσης προγράμματος νοσοκομείου');
     } finally {
       setLoading(false);
     }
@@ -130,11 +130,11 @@ const HospitalScheduleManager: React.FC = () => {
   };
 
   const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    'Ιανουάριος', 'Φεβρουάριος', 'Μάρτιος', 'Απρίλιος', 'Μάιος', 'Ιούνιος',
+    'Ιούλιος', 'Αύγουστος', 'Σεπτέμβριος', 'Οκτώβριος', 'Νοέμβριος', 'Δεκέμβριος'
   ];
 
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const dayNames = ['Δευ', 'Τρι', 'Τετ', 'Πεμ', 'Παρ', 'Σαβ', 'Κυρ'];
 
   return (
     <>
@@ -142,13 +142,13 @@ const HospitalScheduleManager: React.FC = () => {
         <Card.Header>
           <div className="d-flex justify-content-between align-items-center">
             <Button variant="outline-primary" onClick={prevMonth} size="sm">
-              ← Prev
+              ← Προηγ
             </Button>
             <h5 className="mb-0">
               {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
             </h5>
             <Button variant="outline-primary" onClick={nextMonth} size="sm">
-              Next →
+              Επόμ →
             </Button>
           </div>
         </Card.Header>
@@ -200,23 +200,23 @@ const HospitalScheduleManager: React.FC = () => {
                       {dayData.hospitalDay && (
                         <div className="mt-1">
                           {dayData.hospitalDay.isOnCall && (
-                            <Badge bg="primary" className="d-block mb-1" style={{ fontSize: '0.7rem' }}>
-                              On Call
+                            <Badge bg="danger" className="d-block mb-1" style={{ fontSize: '0.7rem' }}>
+                              📞 Εφημερία
                             </Badge>
                           )}
                           {dayData.hospitalDay.isPublicHoliday && (
-                            <Badge bg="warning" className="d-block mb-1" style={{ fontSize: '0.7rem' }}>
-                              Holiday
+                            <Badge bg="secondary" className="d-block mb-1" style={{ fontSize: '0.7rem' }}>
+                              Αργία
                             </Badge>
                           )}
                           {dayData.hospitalDay.hasCardioSurgery && (
-                            <Badge bg="danger" className="d-block mb-1" style={{ fontSize: '0.7rem' }}>
-                              Cardio
+                            <Badge bg="primary" className="d-block mb-1" style={{ fontSize: '0.7rem' }}>
+                              ΚΧ
                             </Badge>
                           )}
                           {dayData.hospitalDay.hasThoracicSurgery && (
                             <Badge bg="info" className="d-block mb-1" style={{ fontSize: '0.7rem' }}>
-                              Thoracic
+                              ΘΧ
                             </Badge>
                           )}
                         </div>
@@ -248,28 +248,28 @@ const HospitalScheduleManager: React.FC = () => {
                   {dayData.hospitalDay ? (
                     <div className="mobile-day-indicators">
                       {dayData.hospitalDay.isOnCall && (
-                        <span className="mobile-indicator" style={{backgroundColor: '#e3f2fd', color: '#1976d2'}}>
-                          On Call
+                        <span className="mobile-indicator" style={{backgroundColor: '#ffebee', color: '#c62828'}}>
+                          📞 Εφημερία
                         </span>
                       )}
                       {dayData.hospitalDay.isPublicHoliday && (
-                        <span className="mobile-indicator" style={{backgroundColor: '#fff3e0', color: '#ef6c00'}}>
-                          Holiday
+                        <span className="mobile-indicator" style={{backgroundColor: '#e0e0e0', color: '#616161'}}>
+                          Αργία
                         </span>
                       )}
                       {dayData.hospitalDay.hasCardioSurgery && (
-                        <span className="mobile-indicator" style={{backgroundColor: '#ffebee', color: '#c62828'}}>
-                          Cardio Surgery
+                        <span className="mobile-indicator" style={{backgroundColor: '#e3f2fd', color: '#1976d2'}}>
+                          ΚΧ
                         </span>
                       )}
                       {dayData.hospitalDay.hasThoracicSurgery && (
                         <span className="mobile-indicator" style={{backgroundColor: '#e1f5fe', color: '#0277bd'}}>
-                          Thoracic Surgery
+                          ΘΧ
                         </span>
                       )}
                     </div>
                   ) : (
-                    <div className="mobile-no-doctors">Tap to set schedule</div>
+                    <div className="mobile-no-doctors">Πατήστε για ορισμό προγράμματος</div>
                   )}
                 </div>
               </div>
@@ -278,7 +278,7 @@ const HospitalScheduleManager: React.FC = () => {
 
           <div className="mt-3">
             <small className="text-muted">
-              Click on any day to set hospital schedule (on-call days, surgeries, holidays)
+              Κάντε κλικ σε οποιαδήποτε ημέρα για να ορίσετε το πρόγραμμα του νοσοκομείου (ημέρες εφημερίας, χειρουργεία, αργίες)
             </small>
           </div>
         </Card.Body>
@@ -288,7 +288,7 @@ const HospitalScheduleManager: React.FC = () => {
       <Modal show={showModal} onHide={() => setShowModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>
-            {selectedDate ? new Date(selectedDate).toLocaleDateString() : ''}
+            {selectedDate ? new Date(selectedDate).toLocaleDateString('el-GR') : ''}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
@@ -299,7 +299,7 @@ const HospitalScheduleManager: React.FC = () => {
               <Form.Check
                 type="checkbox"
                 name="isOnCall"
-                label="On-Call Day"
+                label="Ημέρα Εφημερίας"
                 checked={scheduleData.isOnCall}
                 onChange={handleInputChange}
               />
@@ -309,7 +309,7 @@ const HospitalScheduleManager: React.FC = () => {
               <Form.Check
                 type="checkbox"
                 name="isPublicHoliday"
-                label="Public Holiday"
+                label="Αργία"
                 checked={scheduleData.isPublicHoliday}
                 onChange={handleInputChange}
               />
@@ -319,7 +319,7 @@ const HospitalScheduleManager: React.FC = () => {
               <Form.Check
                 type="checkbox"
                 name="hasCardioSurgery"
-                label="Cardiology Surgery Day"
+                label="Ημέρα Χειρουργείου Καρδιοχειρουργικής (ΚΧ)"
                 checked={scheduleData.hasCardioSurgery}
                 onChange={handleInputChange}
               />
@@ -329,19 +329,19 @@ const HospitalScheduleManager: React.FC = () => {
               <Form.Check
                 type="checkbox"
                 name="hasThoracicSurgery"
-                label="Thoracic Surgery Day"
+                label="Ημέρα Χειρουργείου Θωρακοχειρουργικής (ΘΧ)"
                 checked={scheduleData.hasThoracicSurgery}
                 onChange={handleInputChange}
               />
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>Description (Optional)</Form.Label>
+              <Form.Label>Περιγραφή (Προαιρετικό)</Form.Label>
               <Form.Control
                 as="textarea"
                 rows={3}
                 name="description"
-                placeholder="Additional notes about this day..."
+                placeholder="Πρόσθετες σημειώσεις για αυτήν την ημέρα..."
                 value={scheduleData.description}
                 onChange={handleInputChange}
               />
@@ -350,14 +350,14 @@ const HospitalScheduleManager: React.FC = () => {
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowModal(false)}>
-            Cancel
+            Ακύρωση
           </Button>
           <Button
             variant="primary"
             onClick={handleSave}
             disabled={loading}
           >
-            {loading ? 'Saving...' : 'Save Schedule'}
+            {loading ? 'Αποθήκευση...' : 'Αποθήκευση Προγράμματος'}
           </Button>
         </Modal.Footer>
       </Modal>

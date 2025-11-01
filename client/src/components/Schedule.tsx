@@ -78,7 +78,7 @@ const Schedule: React.FC = () => {
       
     } catch (error) {
       console.error('Failed to download schedule:', error);
-      alert('Failed to download schedule. Please try again.');
+      alert('Αποτυχία λήψης προγράμματος εφημεριών. Παρακαλώ δοκιμάστε ξανά.');
     } finally {
       setDownloading(false);
     }
@@ -86,7 +86,7 @@ const Schedule: React.FC = () => {
 
   const getDoctorName = (doctorId: string) => {
     const doctor = doctors.find(d => d.id === doctorId);
-    return doctor ? `${doctor.firstName} ${doctor.lastName}` : 'Unknown Doctor';
+    return doctor ? `${doctor.firstName} ${doctor.lastName}` : 'Άγνωστος Ειδικευόμενος';
   };
 
   const getDoctorSpecialty = (doctorId: string) => {
@@ -124,7 +124,7 @@ const Schedule: React.FC = () => {
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    const startingDayOfWeek = (firstDay.getDay() + 6) % 7; // Shift Sunday (0) to the end of the week
     
     const days = [];
     
@@ -175,23 +175,23 @@ const Schedule: React.FC = () => {
           <span className="day-number">{date.getDate()}</span>
           <div className="day-indicators">
             {hospitalDay?.isPublicHoliday && (
-              <Badge bg="danger" className="me-1" title="Public Holiday">🏛️</Badge>
+              <Badge bg="secondary" className="me-1" title="Αργία">🏛️</Badge>
             )}
             {hospitalDay?.isOnCall && (
-              <Badge bg="warning" className="me-1" title="On-Call Day">📞</Badge>
+              <Badge bg="danger" className="me-1" title="Ημέρα Εφημερίας">📞</Badge>
             )}
             {hospitalDay?.hasCardioSurgery && (
-              <Badge bg="dark" className="me-1" title="Cardio Surgery" style={{backgroundColor: '#7b1fa2'}}>♥</Badge>
+              <Badge bg="primary" className="me-1" title="ΚΧ (Καρδιοχειρουργική)" style={{backgroundColor: '#1976d2'}}>♥</Badge>
             )}
             {hospitalDay?.hasThoracicSurgery && (
-              <Badge bg="dark" className="me-1" title="Thoracic Surgery" style={{backgroundColor: '#388e3c'}}>🫁</Badge>
+              <Badge bg="info" className="me-1" title="ΘΧ (Θωρακοχειρουργική)" style={{backgroundColor: '#0277bd'}}>🫁</Badge>
             )}
           </div>
         </div>
         <div className="day-content">
           {daySchedule?.doctorIds.map(doctorId => {
             const doctor = doctors.find(d => d.id === doctorId);
-            const doctorName = doctor ? doctor.lastName : 'Unknown';
+            const doctorName = doctor ? doctor.lastName : 'Άγνωστος';
             const isCurrentUser = user?.id === doctorId || String(user?.id) === String(doctorId);
             return (
               <div 
@@ -204,7 +204,7 @@ const Schedule: React.FC = () => {
             );
           })}
           {(!daySchedule || daySchedule.doctorIds.length === 0) && (
-            <div className="no-assignment">No assignments</div>
+            <div className="no-assignment">Χωρίς αναθέσεις</div>
           )}
         </div>
       </div>
@@ -233,7 +233,7 @@ const Schedule: React.FC = () => {
           if (hospitalDay?.hasCardioSurgery) dayClasses += ' cardio-surgery';
           if (hospitalDay?.hasThoracicSurgery) dayClasses += ' thoracic-surgery';
 
-          const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+          const dayNames = ['Δευ', 'Τρι', 'Τετ', 'Πεμ', 'Παρ', 'Σαβ', 'Κυρ'];
           const assignedDoctors = scheduleForDay?.doctorIds || [];
 
           return (
@@ -245,12 +245,12 @@ const Schedule: React.FC = () => {
               
               <div className="mobile-day-content">
                 <div className="mobile-day-indicators">
-                  {hospitalDay?.isOnCall && <span className="mobile-indicator" style={{backgroundColor: '#e3f2fd', color: '#1976d2'}}>On Call</span>}
-                  {hospitalDay?.isPublicHoliday && <span className="mobile-indicator" style={{backgroundColor: '#fff3e0', color: '#ef6c00'}}>Public Holiday</span>}
-                  {hospitalDay?.hasCardioSurgery && <span className="mobile-indicator" style={{backgroundColor: '#f3e5f5', color: '#7b1fa2'}}>Cardio Surgery</span>}
-                  {hospitalDay?.hasThoracicSurgery && <span className="mobile-indicator" style={{backgroundColor: '#e8f5e8', color: '#388e3c'}}>Thoracic Surgery</span>}
-                  {scheduleForDay && !scheduleForDay.isFinalized && <span className="mobile-indicator" style={{backgroundColor: '#fff3e0', color: '#ef6c00'}}>Draft</span>}
-                  {scheduleForDay?.isFinalized && <span className="mobile-indicator" style={{backgroundColor: '#e8f5e8', color: '#2e7d32'}}>Final</span>}
+                  {hospitalDay?.isOnCall && <span className="mobile-indicator" style={{backgroundColor: '#ffebee', color: '#c62828'}}>📞 Εφημερία</span>}
+                  {hospitalDay?.isPublicHoliday && <span className="mobile-indicator" style={{backgroundColor: '#e0e0e0', color: '#616161'}}>Αργία</span>}
+                  {hospitalDay?.hasCardioSurgery && <span className="mobile-indicator" style={{backgroundColor: '#e3f2fd', color: '#1976d2'}}>ΚΧ</span>}
+                  {hospitalDay?.hasThoracicSurgery && <span className="mobile-indicator" style={{backgroundColor: '#e1f5fe', color: '#0277bd'}}>ΘΧ</span>}
+                  {scheduleForDay && !scheduleForDay.isFinalized && <span className="mobile-indicator" style={{backgroundColor: '#fff3e0', color: '#ef6c00'}}>Προσχέδιο</span>}
+                  {scheduleForDay?.isFinalized && <span className="mobile-indicator" style={{backgroundColor: '#e8f5e8', color: '#2e7d32'}}>Τελικό</span>}
                 </div>
                 
                 {assignedDoctors.length > 0 ? (
@@ -269,7 +269,7 @@ const Schedule: React.FC = () => {
                     })}
                   </div>
                 ) : (
-                  <div className="mobile-no-doctors">No doctors assigned</div>
+                  <div className="mobile-no-doctors">Δεν έχουν ανατεθεί ειδικευόμενοι</div>
                 )}
               </div>
             </div>
@@ -291,13 +291,11 @@ const Schedule: React.FC = () => {
       <div className="desktop-calendar-view">
         <div className="calendar-view">
           <div className="calendar-header">
-            <div className="weekday">Sunday</div>
-            <div className="weekday">Monday</div>
-            <div className="weekday">Tuesday</div>
-            <div className="weekday">Wednesday</div>
-            <div className="weekday">Thursday</div>
-            <div className="weekday">Friday</div>
-            <div className="weekday">Saturday</div>
+            {['Δευ', 'Τρι', 'Τετ', 'Πεμ', 'Παρ', 'Σαβ', 'Κυρ'].map(dayName => (
+              <div key={dayName} className="weekday">
+                {dayName}
+              </div>
+            ))}
           </div>
           <div className="calendar-grid">
             {weeks.map((week, weekIndex) => (
@@ -325,10 +323,10 @@ const Schedule: React.FC = () => {
       <Table responsive striped>
         <thead>
           <tr>
-            <th>Date</th>
-            <th>Day</th>
-            <th>Assigned Doctors</th>
-            <th>Special Notes</th>
+            <th>Ημερομηνία</th>
+            <th>Ημέρα</th>
+            <th>Ανατεθέντες Ειδικευόμενοι</th>
+            <th>Ειδικές Σημειώσεις</th>
           </tr>
         </thead>
         <tbody>
@@ -336,8 +334,8 @@ const Schedule: React.FC = () => {
             const hospitalDay = getHospitalDay(shift.date);
             return (
               <tr key={shift.id} className={isUserOnCall(shift.date) ? 'user-assigned-row' : ''}>
-                <td>{new Date(shift.date).toLocaleDateString()}</td>
-                <td>{new Date(shift.date).toLocaleDateString('en-US', { weekday: 'long' })}</td>
+                <td>{new Date(shift.date).toLocaleDateString('el-GR')}</td>
+                <td>{new Date(shift.date).toLocaleDateString('el-GR', { weekday: 'long' })}</td>
                 <td>
                   {shift.doctorIds.length > 0 ? (
                     <div>
@@ -354,22 +352,22 @@ const Schedule: React.FC = () => {
                               </Badge>
                             )}
                             {isCurrentUser && (
-                              <Badge bg="primary" className="ms-2">You</Badge>
+                              <Badge bg="primary" className="ms-2">Εσείς</Badge>
                             )}
                           </div>
                         );
                       })}
                     </div>
                   ) : (
-                    <span className="text-muted">No assignments</span>
+                    <span className="text-muted">Χωρίς αναθέσεις</span>
                   )}
                 </td>
                 <td>
                   {hospitalDay?.isPublicHoliday && (
-                    <Badge bg="danger" className="me-1">Holiday</Badge>
+                    <Badge bg="secondary" className="me-1">Αργία</Badge>
                   )}
                   {hospitalDay?.isOnCall && (
-                    <Badge bg="warning" className="me-1">On-Call</Badge>
+                    <Badge bg="danger" className="me-1">📞 Εφημερία</Badge>
                   )}
                   {hospitalDay?.description && (
                     <small className="text-muted">{hospitalDay.description}</small>
@@ -392,25 +390,25 @@ const Schedule: React.FC = () => {
   };
 
   if (loading) {
-    return <LoadingSpinner message="Loading schedule..." />;
+    return <LoadingSpinner message="Φόρτωση προγράμματος εφημεριών..." />;
   }
 
   const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    'Ιανουάριος', 'Φεβρουάριος', 'Μάρτιος', 'Απρίλιος', 'Μάιος', 'Ιούνιος',
+    'Ιούλιος', 'Αύγουστος', 'Σεπτέμβριος', 'Οκτώβριος', 'Νοέμβριος', 'Δεκέμβριος'
   ];
 
   const hasSchedule = schedule.length > 0;
 
   return (
-    <div>
+    <div className='box-around'>
       <Row className="mb-4">
         <Col>
-          <h2>Schedule</h2>
+          <h2>Πρόγραμμα Εφημεριών</h2>
           <p className="text-muted">
             {user?.role === 'viewer' 
-              ? 'View the official shift schedule'
-              : 'View the shift schedule'
+              ? 'Προβολή του επίσημου προγράμματος εφημεριών'
+              : 'Προβολή του προγράμματος εφημεριών'
             }
           </p>
         </Col>
@@ -419,9 +417,9 @@ const Schedule: React.FC = () => {
       {user?.role === 'viewer' && !hasSchedule && (
         <Alert variant="info" className="text-center">
           <div className="py-5">
-            <h4>No Schedule Available</h4>
+            <h4>Δεν υπάρχει Διαθέσιμο Πρόγραμμα</h4>
             <p className="mb-0">
-              The official shift schedule is not yet available. Please check back later when the schedule has been finalized by the management team.
+              Το επίσημο πρόγραμμα εφημεριών δεν είναι ακόμα διαθέσιμο. Παρακαλώ ελέγξτε ξανά αργότερα όταν το πρόγραμμα θα έχει οριστικοποιηθεί από την ομάδα διαχείρισης.
             </p>
           </div>
         </Alert>
@@ -435,13 +433,13 @@ const Schedule: React.FC = () => {
                 {/* Month navigation */}
                 <div className="d-flex align-items-center justify-content-center mb-3 mb-lg-0">
                   <Button variant="outline-primary" onClick={prevMonth} className="me-2" size="sm">
-                    ← Prev
+                    ← Προηγ
                   </Button>
                   <h5 className="mb-0 mx-2 text-center">
                     {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
                   </h5>
                   <Button variant="outline-primary" onClick={nextMonth} className="ms-2" size="sm">
-                    Next →
+                    Επόμ →
                   </Button>
                 </div>
                 
@@ -453,14 +451,14 @@ const Schedule: React.FC = () => {
                       onClick={() => setViewMode('calendar')}
                       size="sm"
                     >
-                      Calendar
+                      Ημερολόγιο
                     </Button>
                     <Button 
                       variant={viewMode === 'list' ? 'primary' : 'outline-primary'}
                       onClick={() => setViewMode('list')}
                       size="sm"
                     >
-                      List
+                      Λίστα
                     </Button>
                   </ButtonGroup>
                   {hasSchedule && (
@@ -471,7 +469,7 @@ const Schedule: React.FC = () => {
                       className="flex-fill"
                       size="sm"
                     >
-                      {downloading ? 'Downloading...' : 'Download PDF'}
+                      {downloading ? 'Λήψη...' : 'Λήψη PDF'}
                     </Button>
                   )}
                 </div>
@@ -490,12 +488,12 @@ const Schedule: React.FC = () => {
                 ) : renderListView()
               ) : (
                 <Alert variant="warning">
-                  <h5>No Schedule Generated</h5>
-                  <p>No schedule has been generated for this month yet.</p>
+                  <h5>Δεν Έχει Δημιουργηθεί Πρόγραμμα</h5>
+                  <p>Δεν έχει δημιουργηθεί ακόμα πρόγραμμα για αυτόν τον μήνα.</p>
                   {user?.role === 'manager' && (
                     <p>
-                      You can generate a schedule from the{' '}
-                      <a href="/manager" className="alert-link">Manager Dashboard</a>.
+                      Μπορείτε να δημιουργήσετε πρόγραμμα από το{' '}
+                      <a href="/manager" className="alert-link">Πίνακα Διαχείρισης</a>.
                     </p>
                   )}
                 </Alert>
@@ -510,28 +508,28 @@ const Schedule: React.FC = () => {
           <Col>
             <Card className="dashboard-card">
               <Card.Header>
-                <h5 className="mb-0">Schedule Legend</h5>
+                <h5 className="mb-0">Υπόμνημα Προγράμματος</h5>
               </Card.Header>
               <Card.Body>
                 <Row>
                   <Col md={6}>
                     <div className="mb-2">
-                      <Badge bg="danger" className="me-2">🏛️</Badge>
-                      <span>Public Holiday</span>
+                      <Badge bg="secondary" className="me-2">🏛️</Badge>
+                      <span>Αργία</span>
                     </div>
                     <div className="mb-2">
-                      <Badge bg="warning" className="me-2">📞</Badge>
-                      <span>On-Call Day</span>
+                      <Badge bg="danger" className="me-2">📞</Badge>
+                      <span>Ημέρα Εφημερίας</span>
                     </div>
                   </Col>
                   <Col md={6}>
                     <div className="mb-2">
                       <span className="calendar-day-sample user-assigned me-2"></span>
-                      <span>Your assignments</span>
+                      <span>Οι αναθέσεις σας</span>
                     </div>
                     <div className="mb-2">
                       <span className="calendar-day-sample today me-2"></span>
-                      <span>Today</span>
+                      <span>Σήμερα</span>
                     </div>
                   </Col>
                 </Row>
@@ -655,11 +653,11 @@ const Schedule: React.FC = () => {
         }
         
         .calendar-day.holiday {
-          background-color: #f8d7da;
+          background-color: #e0e0e0;
         }
         
         .calendar-day.on-call {
-          background-color: #fff3cd;
+          background-color: #ffebee;
         }
         
         .day-header {
@@ -667,6 +665,13 @@ const Schedule: React.FC = () => {
           justify-content: space-between;
           align-items: flex-start;
           margin-bottom: 0.25rem;
+        }
+        
+        .day-indicators {
+          display: flex;
+          flex-wrap: nowrap;
+          gap: 2px;
+          align-items: center;
         }
         
         .day-number {

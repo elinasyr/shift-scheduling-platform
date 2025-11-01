@@ -57,7 +57,7 @@ const ManagerDashboard: React.FC = () => {
       setAllAvailability(availabilityData);
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
-      setError('Failed to load dashboard data');
+      setError('Αποτυχία φόρτωσης δεδομένων πίνακα');
     } finally {
       setLoading(false);
     }
@@ -98,13 +98,13 @@ const ManagerDashboard: React.FC = () => {
       const result = await api.generateSchedule(request);
       
       if (result.success) {
-        setMessage('Schedule generated successfully!');
+        setMessage('Το πρόγραμμα δημιουργήθηκε επιτυχώς!');
         await loadDashboardData();
       } else {
-        setError('Failed to generate schedule: ' + (result.conflicts?.join(', ') || 'Unknown error'));
+        setError('Αποτυχία δημιουργίας προγράμματος: ' + (result.conflicts?.join(', ') || 'Άγνωστο σφάλμα'));
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to generate schedule');
+      setError(err.response?.data?.message || 'Αποτυχία δημιουργίας προγράμματος');
     } finally {
       setGenerating(false);
     }
@@ -122,18 +122,18 @@ const ManagerDashboard: React.FC = () => {
     try {
       setSaving(true);
       await api.updateSchedule(editingSchedule.date, selectedDoctors);
-      setMessage('Schedule updated successfully!');
+      setMessage('Το πρόγραμμα ενημερώθηκε επιτυχώς!');
       setShowEditModal(false);
       await loadDashboardData();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update schedule');
+      setError(err.response?.data?.message || 'Αποτυχία ενημέρωσης προγράμματος');
     } finally {
       setSaving(false);
     }
   };
 
   const handleFinalizeSchedule = async () => {
-    if (!window.confirm('Are you sure you want to finalize this schedule? This action cannot be undone.')) {
+    if (!window.confirm('Είστε σίγουροι ότι θέλετε να οριστικοποιήσετε αυτό το πρόγραμμα; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.')) {
       return;
     }
 
@@ -157,10 +157,10 @@ const ManagerDashboard: React.FC = () => {
       });
 
       await api.finalizeSchedule(startDateStr, endDateStr);
-      setMessage('Schedule finalized successfully!');
+      setMessage('Το πρόγραμμα οριστικοποιήθηκε επιτυχώς!');
       await loadDashboardData();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to finalize schedule');
+      setError(err.response?.data?.message || 'Αποτυχία οριστικοποίησης προγράμματος');
     } finally {
       setSaving(false);
     }
@@ -168,7 +168,7 @@ const ManagerDashboard: React.FC = () => {
 
   const getDoctorName = (doctorId: string) => {
     const doctor = doctors.find(d => d.id === doctorId);
-    return doctor ? `${doctor.firstName} ${doctor.lastName}` : 'Unknown Doctor';
+    return doctor ? `${doctor.firstName} ${doctor.lastName}` : 'Άγνωστος Ειδικευόμενος';
   };
 
   const getDoctorAvailability = (doctorId: string, date: string) => {
@@ -186,12 +186,12 @@ const ManagerDashboard: React.FC = () => {
   };
 
   if (loading) {
-    return <LoadingSpinner message="Loading manager dashboard..." />;
+    return <LoadingSpinner message="Φόρτωση πίνακα διαχείρισης..." />;
   }
 
   const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    'Ιανουάριος', 'Φεβρουάριος', 'Μάρτιος', 'Απρίλιος', 'Μάιος', 'Ιούνιος',
+    'Ιούλιος', 'Αύγουστος', 'Σεπτέμβριος', 'Οκτώβριος', 'Νοέμβριος', 'Δεκέμβριος'
   ];
 
   const hasSchedule = schedule.length > 0;
@@ -202,11 +202,11 @@ const ManagerDashboard: React.FC = () => {
   const schedulingMonth = new Date(baseDate.getFullYear(), baseDate.getMonth() + 1, 1);
 
   return (
-    <div>
+    <div className='box-around'>
       <Row className="mb-4">
         <Col>
-          <h2>Manager Dashboard</h2>
-          <p className="text-muted">Generate and manage doctor schedules</p>
+          <h2>Πίνακας Διαχείρισης</h2>
+          <p className="text-muted">Δημιουργία και διαχείριση προγραμμάτων εφημεριών ειδικευομένων</p>
         </Col>
       </Row>
 
@@ -214,7 +214,7 @@ const ManagerDashboard: React.FC = () => {
       {error && <Alert variant="danger">{error}</Alert>}
 
       <Tabs defaultActiveKey="schedule" className="mb-4">
-        <Tab eventKey="schedule" title="Schedule Management">
+        <Tab eventKey="schedule" title="Διαχείριση Προγραμμάτων">
           {/* Month Navigation and Actions */}
       <Card className="dashboard-card mb-4">
         <Card.Header>
@@ -223,14 +223,14 @@ const ManagerDashboard: React.FC = () => {
             {/* Month navigation */}
             <div className="d-flex align-items-center justify-content-center mb-3 mb-lg-0">
               <Button variant="outline-primary" onClick={prevMonth} className="me-2" size="sm">
-                ← Prev
+                ← Προηγ
               </Button>
               <h5 className="mb-0 mx-2 text-center">
-                <span className="d-none d-sm-inline">Scheduling for: </span>
+                <span className="d-none d-sm-inline">Προγραμματισμός για: </span>
                 {monthNames[schedulingMonth.getMonth()]} {schedulingMonth.getFullYear()}
               </h5>
               <Button variant="outline-primary" onClick={nextMonth} className="ms-2" size="sm">
-                Next →
+                Επόμ →
               </Button>
             </div>
             
@@ -243,7 +243,7 @@ const ManagerDashboard: React.FC = () => {
                 className="flex-fill"
                 size="sm"
               >
-                {generating ? 'Generating...' : 'Generate Schedule'}
+                {generating ? 'Δημιουργία...' : 'Δημιουργία Προγράμματος'}
               </Button>
               {hasSchedule && hasDraftSchedule && (
                 <Button 
@@ -253,7 +253,7 @@ const ManagerDashboard: React.FC = () => {
                   className="flex-fill"
                   size="sm"
                 >
-                  {saving ? 'Finalizing...' : 'Finalize Schedule'}
+                  {saving ? 'Οριστικοποίηση...' : 'Οριστικοποίηση Προγράμματος'}
                 </Button>
               )}
             </div>
@@ -265,34 +265,34 @@ const ManagerDashboard: React.FC = () => {
       {hasSchedule ? (
         <Card className="dashboard-card mb-4">
           <Card.Header>
-            <h5 className="mb-0">Schedule Overview</h5>
+            <h5 className="mb-0">Επισκόπηση Προγράμματος</h5>
           </Card.Header>
           <Card.Body>
             <Table responsive hover>
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>Day</th>
-                  <th>Assigned Doctors</th>
-                  <th>Status</th>
-                  <th>Actions</th>
+                  <th>Ημερομηνία</th>
+                  <th>Ημέρα</th>
+                  <th>Ανατεθέντες Ειδικευόμενοι</th>
+                  <th>Κατάσταση</th>
+                  <th>Ενέργειες</th>
                 </tr>
               </thead>
               <tbody>
                 {schedule.map((shift) => (
                   <tr key={shift.id}>
-                    <td>{new Date(shift.date).toLocaleDateString()}</td>
-                    <td>{new Date(shift.date).toLocaleDateString('en-US', { weekday: 'long' })}</td>
+                    <td>{new Date(shift.date).toLocaleDateString('el-GR')}</td>
+                    <td>{new Date(shift.date).toLocaleDateString('el-GR', { weekday: 'long' })}</td>
                     <td>
                       {shift.doctorIds.length > 0 ? (
                         shift.doctorIds.map(doctorId => getDoctorName(doctorId)).join(', ')
                       ) : (
-                        <span className="text-muted">No assignments</span>
+                        <span className="text-muted">Χωρίς αναθέσεις</span>
                       )}
                     </td>
                     <td>
                       <Badge bg={shift.isFinalized ? 'success' : 'warning'}>
-                        {shift.isFinalized ? 'Finalized' : 'Draft'}
+                        {shift.isFinalized ? 'Οριστικοποιημένο' : 'Προσχέδιο'}
                       </Badge>
                     </td>
                     <td>
@@ -301,7 +301,7 @@ const ManagerDashboard: React.FC = () => {
                         size="sm"
                         onClick={() => handleEditSchedule(shift)}
                       >
-                        Edit
+                        Επεξεργασία
                       </Button>
                     </td>
                   </tr>
@@ -312,25 +312,25 @@ const ManagerDashboard: React.FC = () => {
         </Card>
       ) : (
         <Alert variant="info">
-          No schedule has been generated for this month. Click "Generate Schedule" to create one based on doctor preferences.
+          Δεν έχει δημιουργηθεί πρόγραμμα για αυτόν τον μήνα. Κάντε κλικ στο "Δημιουργία Προγράμματος" για να δημιουργήσετε ένα με βάση τις προτιμήσεις των ειδικευομένων.
         </Alert>
       )}
 
       {/* Doctor Availability Overview */}
       <Card className="dashboard-card">
         <Card.Header>
-          <h5 className="mb-0">Doctor Availability Summary</h5>
+          <h5 className="mb-0">Σύνοψη Διαθεσιμότητας Ειδικευομένων</h5>
         </Card.Header>
         <Card.Body>
           <Table responsive striped>
             <thead>
               <tr>
-                <th>Doctor</th>
-                <th>Role</th>
-                <th>Specialty</th>
-                <th>Available Days</th>
-                <th>Unavailable Days</th>
-                <th>Holiday Days</th>
+                <th>Ειδικευόμενος</th>
+                <th>Ρόλος</th>
+                <th>Χειρουργεία</th>
+                <th>Διαθέσιμες Ημέρες</th>
+                <th>Μη Διαθέσιμες Ημέρες</th>
+                <th>Ημέρες Άδειας</th>
               </tr>
             </thead>
             <tbody>
@@ -339,6 +339,7 @@ const ManagerDashboard: React.FC = () => {
                 console.log(`Doctor ${doctor.id} availability:`, availability.length);
                 const availableDays = availability.filter(a => a.isAvailable).length;
                 const unavailableDays = availability.filter(a => a.isUnavailable).length;
+                console.log(`Doctor ${doctor.id} - Available: ${availableDays}, Unavailable: ${unavailableDays}`);
                 const holidayDays = availability.filter(a => a.isHoliday).length;
 
                 return (
@@ -351,7 +352,7 @@ const ManagerDashboard: React.FC = () => {
                         {doctor.role}
                       </Badge>
                     </td>
-                    <td>{doctor.specialty || <span className="text-muted">Not specified</span>}</td>
+                    <td>{doctor.specialty || <span className="text-muted">Δεν έχει οριστεί</span>}</td>
                     <td>
                       <Badge bg="success">{availableDays}</Badge>
                     </td>
@@ -373,13 +374,13 @@ const ManagerDashboard: React.FC = () => {
       <Modal show={showEditModal} onHide={() => setShowEditModal(false)} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>
-            Edit Schedule for {editingSchedule?.date ? new Date(editingSchedule.date).toLocaleDateString() : ''}
+            Επεξεργασία Προγράμματος για {editingSchedule?.date ? new Date(editingSchedule.date).toLocaleDateString('el-GR') : ''}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
             <Form.Group>
-              <Form.Label>Assign Doctors for this Day</Form.Label>
+              <Form.Label>Ανάθεση Ειδικευομένων για αυτήν την Ημέρα</Form.Label>
               {doctors.map((doctor) => {
                 const availability = editingSchedule ? getDoctorAvailability(doctor.id, editingSchedule.date) : null;
                 const isAvailable = availability?.isAvailable ?? true;
@@ -393,7 +394,7 @@ const ManagerDashboard: React.FC = () => {
                       <span>
                         {doctor.firstName} {doctor.lastName} 
                         {doctor.specialty && <Badge bg="secondary" className="ms-2">{doctor.specialty}</Badge>}
-                        {!isAvailable && <Badge bg="danger" className="ms-2">Unavailable</Badge>}
+                        {!isAvailable && <Badge bg="danger" className="ms-2">Μη Διαθέσιμος</Badge>}
                       </span>
                     }
                     checked={selectedDoctors.includes(doctor.id)}
@@ -414,24 +415,24 @@ const ManagerDashboard: React.FC = () => {
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowEditModal(false)}>
-            Cancel
+            Ακύρωση
           </Button>
           <Button 
             variant="primary" 
             onClick={handleSaveEdit}
             disabled={saving}
           >
-            {saving ? 'Saving...' : 'Save Changes'}
+            {saving ? 'Αποθήκευση...' : 'Αποθήκευση Αλλαγών'}
           </Button>
         </Modal.Footer>
       </Modal>
         </Tab>
 
-        <Tab eventKey="approvals" title="Doctor Approvals">
+        <Tab eventKey="approvals" title="Εγκρίσεις Ειδικευομένων">
           <PendingDoctors />
         </Tab>
 
-        <Tab eventKey="hospital-schedule" title="Hospital Schedule">
+        <Tab eventKey="hospital-schedule" title="Πρόγραμμα Νοσοκομείου">
           <HospitalScheduleManager />
         </Tab>
       </Tabs>

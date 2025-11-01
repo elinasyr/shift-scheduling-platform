@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Container, Card, Form, Button, Alert, Row, Col } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import Logo from '../common/Logo';
 
 const Signup: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -31,17 +32,17 @@ const Signup: React.FC = () => {
     // Validation
     if (!formData.firstName || !formData.lastName || !formData.email || 
         !formData.password || !formData.confirmPassword) {
-      setError('Please fill in all required fields');
+      setError('Παρακαλώ συμπληρώστε όλα τα απαιτούμενα πεδία');
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError('Οι κωδικοί δεν ταιριάζουν');
       return;
     }
 
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
+      setError('Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες');
       return;
     }
 
@@ -51,7 +52,7 @@ const Signup: React.FC = () => {
       await signup(formData);
       navigate('/');
     } catch (err: any) {
-      setError(err.message || 'Failed to create account');
+      setError(err.message || 'Αποτυχία δημιουργίας λογαριασμού');
     } finally {
       setIsLoading(false);
     }
@@ -61,19 +62,12 @@ const Signup: React.FC = () => {
     <div className="auth-container">
       <Container>
         <Row className="justify-content-center">
-          <Col xs={12} sm={10} md={8} lg={6} xl={5}>
+          <Col xs={17} sm={10} md={15} lg={10} xl={6}>
             <Card className="auth-card">
               <div className="auth-logo">
-                <img 
-                  src="/logo.jpg" 
-                  alt="Hospital Logo"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                  }}
-                />
-                <h2 className="mt-3 text-center">Create Account</h2>
-                <p className="text-muted text-center">Join the hospital scheduling system</p>
+                <Logo />
+                <h2 className="mt-3 text-center">Δημιουργία Λογαριασμού</h2>
+                <p className="text-muted text-center">Εγγραφείτε στο σύστημα προγραμματισμού εφημεριών</p>
               </div>
 
               {error && <Alert variant="danger">{error}</Alert>}
@@ -82,11 +76,11 @@ const Signup: React.FC = () => {
                 <Row>
                   <Col md={6}>
                     <Form.Group className="mb-3">
-                      <Form.Label>First Name</Form.Label>
+                      <Form.Label>Όνομα</Form.Label>
                       <Form.Control
                         type="text"
                         name="firstName"
-                        placeholder="Enter first name"
+                        placeholder="Εισάγετε το όνομά σας"
                         value={formData.firstName}
                         onChange={handleChange}
                         required
@@ -95,11 +89,11 @@ const Signup: React.FC = () => {
                   </Col>
                   <Col md={6}>
                     <Form.Group className="mb-3">
-                      <Form.Label>Last Name</Form.Label>
+                      <Form.Label>Επώνυμο</Form.Label>
                       <Form.Control
                         type="text"
                         name="lastName"
-                        placeholder="Enter last name"
+                        placeholder="Εισάγετε το επώνυμό σας"
                         value={formData.lastName}
                         onChange={handleChange}
                         required
@@ -109,11 +103,11 @@ const Signup: React.FC = () => {
                 </Row>
 
                 <Form.Group className="mb-3">
-                  <Form.Label>Email Address</Form.Label>
+                  <Form.Label>Email</Form.Label>
                   <Form.Control
                     type="email"
                     name="email"
-                    placeholder="Enter your email"
+                    placeholder="Εισάγετε το email σας"
                     value={formData.email}
                     onChange={handleChange}
                     required
@@ -123,11 +117,11 @@ const Signup: React.FC = () => {
                 <Row>
                   <Col md={6}>
                     <Form.Group className="mb-3">
-                      <Form.Label>Password</Form.Label>
+                      <Form.Label>Κωδικός</Form.Label>
                       <Form.Control
                         type="password"
                         name="password"
-                        placeholder="Create password"
+                        placeholder="Δημιουργήστε κωδικό"
                         value={formData.password}
                         onChange={handleChange}
                         required
@@ -136,11 +130,11 @@ const Signup: React.FC = () => {
                   </Col>
                   <Col md={6}>
                     <Form.Group className="mb-3">
-                      <Form.Label>Confirm Password</Form.Label>
+                      <Form.Label>Επιβεβαίωση Κωδικού</Form.Label>
                       <Form.Control
                         type="password"
                         name="confirmPassword"
-                        placeholder="Confirm password"
+                        placeholder="Επιβεβαιώστε τον κωδικό"
                         value={formData.confirmPassword}
                         onChange={handleChange}
                         required
@@ -150,8 +144,8 @@ const Signup: React.FC = () => {
                 </Row>
 
                 <Alert variant="info" className="mb-3">
-                  <strong>Note:</strong> Your account will require approval from a manager before you can access all features. 
-                  You'll initially have viewer access until approved.
+                  <strong>Σημείωση:</strong> Ο λογαριασμός σας θα χρειαστεί έγκριση από έναν διαχειριστή πριν αποκτήσετε πλήρη πρόσβαση. 
+                  Αρχικά θα έχετε δικαιώματα προβολής μέχρι να εγκριθείτε.
                 </Alert>
 
                 <Button 
@@ -159,15 +153,15 @@ const Signup: React.FC = () => {
                   className="w-100 mb-3" 
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Creating Account...' : 'Create Account'}
+                  {isLoading ? 'Δημιουργία Λογαριασμού...' : 'Δημιουργία Λογαριασμού'}
                 </Button>
               </Form>
 
               <div className="text-center">
                 <p className="mb-0">
-                  Already have an account?{' '}
+                  Έχετε ήδη λογαριασμό;{' '}
                   <Link to="/login" className="text-decoration-none">
-                    Sign in here
+                    Συνδεθείτε εδώ
                   </Link>
                 </p>
               </div>
