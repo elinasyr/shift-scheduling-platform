@@ -195,15 +195,15 @@ const Profile: React.FC = () => {
                       </Col>
                       <Col md={6}>
                         <Form.Group className="mb-3">
-                          <Form.Label>Βαθμίδα (Επίπεδο Αρχαιότητας)</Form.Label>
+                          <Form.Label>Βαθμίδα</Form.Label>
                           <Form.Select
                             name="rank"
                             value={formData.rank}
                             onChange={handleChange}
                             disabled={!editing}
                           >
-                            <option value="junior">Μικρός</option>
-                            <option value="senior">Μεγάλος</option>
+                            <option value="junior">Μικρός/η</option>
+                            <option value="senior">Μεγάλος/η</option>
                           </Form.Select>
                         </Form.Group>
                       </Col>
