@@ -223,9 +223,9 @@ const PendingDoctors: React.FC = () => {
                     onChange={handleInputChange}
                     required
                   >
-                    <option value="general">Γενική</option>
-                    <option value="cardiology">Καρδιολογία</option>
-                    <option value="thoracic">Θωρακική</option>
+                    <option value="καρδιολογία">Καρδιολογία</option>
+                    <option value="θωρακική">Θωρακική</option>
+                    <option value="γενική">Γενική</option>
                   </Form.Select>
                 </Form.Group>
 
