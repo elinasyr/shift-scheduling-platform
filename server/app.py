@@ -5,10 +5,8 @@ from models import (db, Doctor, Hospital, Shift, Availability, Holiday, Hospital
 from rules_or import SchedulingSolver
 import os
 import secrets
-import calendar
 import traceback
 from datetime import datetime, date, timedelta
-from typing import Dict, List, Any
 from functools import wraps
 
 # Create and configure the application

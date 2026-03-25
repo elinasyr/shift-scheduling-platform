@@ -133,9 +133,14 @@ export const getDoctorAvailability = async (doctorId: string, startDate: string,
       params: { startDate, endDate }
     });
     
+    console.log('Backend availability response:', response.data);
+    
     // Convert backend format to frontend format
     const availability: DayAvailability[] = [];
     const backendData = response.data.availability || {};
+    
+    console.log('Doctor availability data - backendData:', backendData);
+    console.log('backendData keys:', Object.keys(backendData));
     
     // Generate all days in the range - ensure proper date parsing
     // Parse dates manually to avoid timezone issues
@@ -153,20 +158,27 @@ export const getDoctorAvailability = async (doctorId: string, startDate: string,
       // console.log('Processing date:', currentDate, 'vs end:', end);
       // Format date as YYYY-MM-DD without timezone issues
       const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
-      const status = backendData[dateStr] || 'available';
+      const status = (backendData[dateStr] || 'available').toLowerCase();
+      
+      console.log(`Date ${dateStr}: status=${status}`);
       
       availability.push({
         id: `${doctorId}-${dateStr}`,
         doctorId: doctorId,
         date: dateStr,
         isAvailable: status === 'available',
-        isHoliday: false, // We'll handle holidays separately
+        isHoliday: status === 'holiday',
         isUnavailable: status === 'unavailable'
       });
       
       // Increment the date for next iteration
       currentDate.setDate(currentDate.getDate() + 1);
     }
+    
+    const unavailableCount = availability.filter(a => a.isUnavailable).length;
+    const availableCount = availability.filter(a => a.isAvailable).length;
+    const holidayCount = availability.filter(a => a.isHoliday).length;
+    console.log(`Doctor ${doctorId} availability summary: ${availableCount} available, ${unavailableCount} unavailable, ${holidayCount} holidays out of ${availability.length} total days`);
     
     return availability;
   } catch (error) {
@@ -181,6 +193,7 @@ export const updateDoctorAvailability = async (doctorId: string, availability: D
     for (const day of availability) {
       let status = 'available';
       if (day.isUnavailable) status = 'unavailable';
+      else if (day.isHoliday) status = 'holiday';
       else if (!day.isAvailable) status = 'unavailable';
       
       await apiClient.post(`/availability/${doctorId}`, {

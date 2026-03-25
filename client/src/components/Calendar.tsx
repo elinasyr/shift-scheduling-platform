@@ -51,12 +51,15 @@ const Calendar: React.FC = () => {
       if (user && (user.role === 'doctor' || user.role === 'manager')) {
         console.log('Start date:', startDateStr, 'End date:', endDateStr);
         const availability = await api.getDoctorAvailability(user.id, startDateStr, endDateStr);
+        console.log('Loaded availability for user:', availability);
         const unavailable = new Set(
           availability.filter(a => a.isUnavailable).map(a => a.date)
         );
         const holidays = new Set(
           availability.filter(a => a.isHoliday).map(a => a.date)
         );
+        console.log('Unavailable dates:', unavailable);
+        console.log('Holiday dates:', holidays);
         setUnavailableDays(unavailable);
         setHolidayDays(holidays);
 

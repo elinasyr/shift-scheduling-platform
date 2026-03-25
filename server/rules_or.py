@@ -46,7 +46,7 @@ class SchedulingSolver:
                 elif 3 <= i < 7:
                     rot = 'KX'
                 elif 7 <= i < 11:
-                    rot = 'TX'
+                    rot = 'XXXXX'
                 else:
                     rot = None
                 is_new = (i >= 11)  # πχ οι τελευταίοι 2 είναι νέοι

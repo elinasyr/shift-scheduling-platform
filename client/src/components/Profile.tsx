@@ -187,9 +187,9 @@ const Profile: React.FC = () => {
                             onChange={handleChange}
                             disabled={!editing}
                           >
-                            <option value="καρδιολογία">Καρδιολογία</option>
-                            <option value="θωρακική">Θωρακική</option>
-                            <option value="γενική">Γενική</option>
+                          <option value="καρδιολογία">Καρδιολογία</option>
+                          <option value="θωρακική">Θωρακική</option>
+                          <option value="γενική">Γενική</option>
                           </Form.Select>
                         </Form.Group>
                       </Col>
