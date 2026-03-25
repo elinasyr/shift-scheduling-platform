@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Table, Badge, Modal, Form, Alert, Spinner } from 'react-bootstrap';
+import { Card, Button, Table, Modal, Form, Alert, Spinner } from 'react-bootstrap';
 import { User, ApprovalData } from '../../types';
 import * as api from '../../services/api';
+import { RANK_OPTIONS, ROTATION_OPTIONS, SPECIALTY_OPTIONS } from '../../utils/medical';
 
 const PendingDoctors: React.FC = () => {
   const [pendingDoctors, setPendingDoctors] = useState<User[]>([]);
@@ -203,29 +204,48 @@ const PendingDoctors: React.FC = () => {
 
               <Form>
                 <Form.Group className="mb-3">
-                  <Form.Label>Κατηγορία</Form.Label>
+                  <Form.Label>Ρόλος πρόσβασης</Form.Label>
                   <Form.Select
                     name="role"
                     value={approvalData.role}
                     onChange={handleInputChange}
                     required
                   >
-                    <option value="doctor">Μικρός</option>
-                    <option value="manager">Μεγάλος</option>
+                    <option value="doctor">Ειδικευόμενος</option>
+                    <option value="manager">Διαχειριστής</option>
+                    <option value="viewer">Θεατής</option>
                   </Form.Select>
                 </Form.Group>
 
                 <Form.Group className="mb-3">
-                  <Form.Label>Τύπος Χειρουργείων</Form.Label>
+                  <Form.Label>Τομέας</Form.Label>
                   <Form.Select
                     name="specialty"
                     value={approvalData.specialty}
                     onChange={handleInputChange}
                     required
                   >
-                    <option value="καρδιολογία">Καρδιολογία</option>
-                    <option value="θωρακική">Θωρακική</option>
-                    <option value="γενική">Γενική</option>
+                    {SPECIALTY_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Βαθμίδα</Form.Label>
+                  <Form.Select
+                    name="rank"
+                    value={approvalData.rank}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    {RANK_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </Form.Select>
                 </Form.Group>
 
@@ -237,10 +257,11 @@ const PendingDoctors: React.FC = () => {
                     onChange={handleInputChange}
                     required
                   >
-                    <option value="internal">Κανονικός</option>
-                    <option value="visiting">Επισκέπτης από άλλο νοσοκομείο</option>
-                    <option value="abroad">Πρακτική στο εξωτερικό</option>
-                    <option value="outside">Ειδικευόμενοι εκτός Αττικόν</option>
+                    {ROTATION_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </Form.Select>
                 </Form.Group>
 

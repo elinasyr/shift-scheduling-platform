@@ -287,7 +287,7 @@ export const getSchedule = async (startDate: string, endDate: string): Promise<S
 
 export const updateSchedule = async (date: string, doctorIds: string[]): Promise<Schedule> => {
   try {
-    const response = await apiClient.put('/schedule/edit', {
+    await apiClient.put('/schedule/edit', {
       date,
       doctorIds: doctorIds.map(id => parseInt(id))
     });
@@ -395,6 +395,8 @@ export const getHospitalDays = async (startDate: string, endDate: string): Promi
       date: day.date,
       isOnCall: day.isOnCall,
       isPublicHoliday: day.isPublicHoliday,
+      hasCardioSurgery: day.hasCardioSurgery,
+      hasThoracicSurgery: day.hasThoracicSurgery,
       description: day.description
     }));
   } catch (error) {
@@ -430,9 +432,8 @@ export const updateProfile = async (userData: Partial<User>): Promise<User> => {
 };
 
 export const uploadProfilePhoto = async (file: File): Promise<string> => {
-  // TODO: Implement photo upload endpoint on backend
-  console.log('Photo upload not yet implemented on backend');
-  return '/placeholder-avatar.png';
+  void file;
+  throw new Error('Η μεταφόρτωση φωτογραφίας δεν υποστηρίζεται ακόμη.');
 };
 
 // Doctor Approval APIs

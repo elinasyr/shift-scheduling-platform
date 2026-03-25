@@ -3,6 +3,17 @@ import { Card, Button, Row, Col, Table, Badge, Modal, Form, Alert } from 'react-
 import { Doctor } from '../../types';
 import * as api from '../../services/api';
 import LoadingSpinner from '../common/LoadingSpinner';
+import {
+  CATEGORY_OPTIONS,
+  RANK_OPTIONS,
+  ROTATION_OPTIONS,
+  SPECIALTY_OPTIONS,
+  getCategoryLabel,
+  getRankLabel,
+  getRotationLabel,
+  getRoleLabel,
+  getSpecialtyLabel
+} from '../../utils/medical';
 
 const DoctorsList: React.FC = () => {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
@@ -17,7 +28,7 @@ const DoctorsList: React.FC = () => {
     firstName: '',
     lastName: '',
     email: '',
-    specialty: 'general' as 'cardiology' | 'thoracic' | 'general',
+      specialty: 'general' as 'cardiology' | 'thoracic' | 'general',
     rank: 'junior' as 'junior' | 'senior',
     rotationType: 'internal' as 'outside' | 'visiting' | 'internal' | 'abroad',
     category: 'doctor' as 'doctor' | 'manager' | 'viewer',
@@ -200,22 +211,22 @@ const DoctorsList: React.FC = () => {
                         <td>{doctor.email}</td>
                         <td>
                           <Badge bg={doctor.role === 'manager' ? 'primary' : 'secondary'}>
-                            {doctor.role}
+                            {getRoleLabel(doctor.role)}
                           </Badge>
                         </td>
-                        <td>{doctor.specialty || <span className="text-muted">Δεν έχει οριστεί</span>}</td>
+                        <td>{getSpecialtyLabel(doctor.specialty)}</td>
                         <td>
                           <Badge bg={doctor.rank === 'senior' ? 'warning' : 'info'}>
-                            {doctor.rank || 'Δεν έχει οριστεί'}
+                            {getRankLabel(doctor.rank)}
                           </Badge>
                           {doctor.isNew && <Badge bg="success" className="ms-1">Νέος</Badge>}
                         </td>
                         <td>
                           <Badge bg={doctor.category === 'manager' ? 'primary' : 'secondary'}>
-                            {doctor.category || 'Δεν έχει οριστεί'}
+                            {getCategoryLabel(doctor.category)}
                           </Badge>
                         </td>
-                        <td>{doctor.rotationType || <span className="text-muted">Δεν έχει οριστεί</span>}</td>
+                        <td>{getRotationLabel(doctor.rotationType)}</td>
                         <td>
                           <Button 
                             variant="outline-primary" 
@@ -269,20 +280,20 @@ const DoctorsList: React.FC = () => {
                           </div>
                         </div>
                         <Badge bg={doctor.role === 'manager' ? 'primary' : 'secondary'} className="ms-2">
-                          {doctor.role}
+                          {getRoleLabel(doctor.role)}
                         </Badge>
                       </div>
                       
                       <Row className="mt-3">
                         <Col xs={6}>
                           <small className="text-muted">Τύπος χειρουργείων:</small>
-                          <div>{doctor.specialty || <span className="text-muted">Δεν έχει οριστεί</span>}</div>
+                          <div>{getSpecialtyLabel(doctor.specialty)}</div>
                         </Col>
                         <Col xs={6}>
                           <small className="text-muted">Βαθμίδα:</small>
                           <div>
                             <Badge bg={doctor.rank === 'senior' ? 'warning' : 'info'}>
-                              {doctor.rank || 'Δεν έχει οριστεί'}
+                              {getRankLabel(doctor.rank)}
                             </Badge>
                             {doctor.isNew && <Badge bg="success" className="ms-1">Νέος</Badge>}
                           </div>
@@ -293,13 +304,13 @@ const DoctorsList: React.FC = () => {
                           <small className="text-muted">Κατηγορία:</small>
                           <div>
                             <Badge bg={doctor.category === 'manager' ? 'primary' : 'secondary'}>
-                              {doctor.category || 'Δεν έχει οριστεί'}
+                              {getCategoryLabel(doctor.category)}
                             </Badge>
                           </div>
                         </Col>
                         <Col xs={6}>
                           <small className="text-muted">Τύπος Rotation:</small>
-                          <div>{doctor.rotationType || <span className="text-muted">Δεν έχει οριστεί</span>}</div>
+                          <div>{getRotationLabel(doctor.rotationType)}</div>
                         </Col>
                       </Row>
                       
@@ -395,22 +406,24 @@ const DoctorsList: React.FC = () => {
                     required
                   >
                     <option value="doctor">Ειδικευόμενος</option>
-                    <option value="manager">Διαχειριστής & Ειδικευόμενος</option>
+                    <option value="manager">Διαχειριστής</option>
                   </Form.Select>
                 </Form.Group>
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Τύπος Χειρουργείων</Form.Label>
+                  <Form.Label>Τομέας</Form.Label>
                   <Form.Select 
                     name="specialty" 
                     value={formData.specialty} 
                     onChange={handleChange}
                     required
                   >
-                    <option value="καρδιολογία">Καρδιολογία</option>
-                    <option value="θωρακική">Θωρακική</option>
-                    <option value="γενική">Γενική</option>
+                    {SPECIALTY_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </Form.Select>
                 </Form.Group>
               </Col>
@@ -426,8 +439,11 @@ const DoctorsList: React.FC = () => {
                     onChange={handleChange}
                     required
                   >
-                    <option value="junior">Μικρός</option>
-                    <option value="senior">Μεγάλος</option>
+                    {RANK_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </Form.Select>
                 </Form.Group>
               </Col>
@@ -440,9 +456,11 @@ const DoctorsList: React.FC = () => {
                     onChange={handleChange}
                     required
                   >
-                    <option value="doctor">Ειδικευόμενος</option>
-                    <option value="manager">Διαχειριστής</option>
-                    <option value="viewer">Θεατής</option>
+                    {CATEGORY_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </Form.Select>
                 </Form.Group>
               </Col>
@@ -456,10 +474,11 @@ const DoctorsList: React.FC = () => {
                 onChange={handleChange}
                 required
               >
-                <option value="internal">Κανονικός</option>
-                <option value="visiting">Επισκέπτης από άλλο νοσοκομείο</option>
-                <option value="abroad">Πρακτική στο εξωτερικό</option>
-                <option value="outside">Ειδικευόμενοι εκτός Αττικόν</option>
+                {ROTATION_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </Form.Select>
             </Form.Group>
 

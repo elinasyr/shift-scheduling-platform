@@ -1,10 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Button, Modal, Form, Alert, Badge, Row, Col } from 'react-bootstrap';
 import { HospitalDay } from '../../types';
 import * as api from '../../services/api';
+import { MONTH_NAMES, WEEKDAY_NAMES } from '../../utils/medical';
 
-const HospitalScheduleManager: React.FC = () => {
-  const [currentDate, setCurrentDate] = useState(new Date());
+interface HospitalScheduleManagerProps {
+  activeMonth?: Date;
+  onMonthChange?: (date: Date) => void;
+}
+
+const HospitalScheduleManager: React.FC<HospitalScheduleManagerProps> = ({ activeMonth, onMonthChange }) => {
+  const [currentDate, setCurrentDate] = useState(activeMonth || new Date());
   const [hospitalDays, setHospitalDays] = useState<HospitalDay[]>([]);
   const [calendarDays, setCalendarDays] = useState<any[]>([]);
   const [showModal, setShowModal] = useState(false);
@@ -21,10 +27,12 @@ const HospitalScheduleManager: React.FC = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    loadHospitalSchedule();
-  }, [currentDate]);
+    if (activeMonth) {
+      setCurrentDate(activeMonth);
+    }
+  }, [activeMonth]);
 
-  const loadHospitalSchedule = async () => {
+  const loadHospitalSchedule = useCallback(async () => {
     try {
       const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
       const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
@@ -40,7 +48,11 @@ const HospitalScheduleManager: React.FC = () => {
       console.error('Failed to load hospital schedule:', error);
       setError('Αποτυχία φόρτωσης προγράμματος νοσοκομείου');
     }
-  };
+  }, [currentDate]);
+
+  useEffect(() => {
+    loadHospitalSchedule();
+  }, [loadHospitalSchedule]);
 
   const generateCalendarDays = (startDate: Date, endDate: Date, hospitalDaysData: HospitalDay[]) => {
     const days: any[] = [];
@@ -122,19 +134,20 @@ const HospitalScheduleManager: React.FC = () => {
   };
 
   const nextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+    const nextDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+    setCurrentDate(nextDate);
+    onMonthChange?.(nextDate);
   };
 
   const prevMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+    const prevDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+    setCurrentDate(prevDate);
+    onMonthChange?.(prevDate);
   };
 
-  const monthNames = [
-    'Ιανουάριος', 'Φεβρουάριος', 'Μάρτιος', 'Απρίλιος', 'Μάιος', 'Ιούνιος',
-    'Ιούλιος', 'Αύγουστος', 'Σεπτέμβριος', 'Οκτώβριος', 'Νοέμβριος', 'Δεκέμβριος'
-  ];
-
-  const dayNames = ['Δευ', 'Τρι', 'Τετ', 'Πεμ', 'Παρ', 'Σαβ', 'Κυρ'];
+  const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+  const configuredDays = new Set(hospitalDays.map((day) => day.date)).size;
+  const missingDays = daysInMonth - configuredDays;
 
   return (
     <>
@@ -145,7 +158,7 @@ const HospitalScheduleManager: React.FC = () => {
               ← Προηγ
             </Button>
             <h5 className="mb-0">
-              {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+              {MONTH_NAMES[currentDate.getMonth()]} {currentDate.getFullYear()}
             </h5>
             <Button variant="outline-primary" onClick={nextMonth} size="sm">
               Επόμ →
@@ -155,11 +168,16 @@ const HospitalScheduleManager: React.FC = () => {
         <Card.Body>
           {message && <Alert variant="success">{message}</Alert>}
           {error && <Alert variant="danger">{error}</Alert>}
+          {missingDays > 0 && (
+            <Alert variant="warning" className="info-banner">
+              Ο μήνας δεν έχει συμπληρωθεί πλήρως. Απομένουν {missingDays} ημέρες χωρίς ρύθμιση νοσοκομείου.
+            </Alert>
+          )}
 
           <div className="desktop-calendar-view">
             {/* Day names header */}
             <Row className="g-0 bg-light">
-              {dayNames.map(dayName => (
+              {WEEKDAY_NAMES.slice(1).concat(WEEKDAY_NAMES[0]).map(dayName => (
                 <Col key={dayName} className="p-2 text-center fw-bold border" xs={true}>
                   {dayName}
                 </Col>
@@ -169,7 +187,7 @@ const HospitalScheduleManager: React.FC = () => {
             {/* Calendar grid - 6 weeks */}
             {Array.from({ length: 6 }, (_, weekIndex) => (
               <Row key={weekIndex} className="g-0">
-                {dayNames.map((_, dayIndex) => {
+                {WEEKDAY_NAMES.slice(1).concat(WEEKDAY_NAMES[0]).map((_, dayIndex) => {
                   const dayData = calendarDays[weekIndex * 7 + dayIndex];
                   
                   if (!dayData) {
@@ -187,7 +205,7 @@ const HospitalScheduleManager: React.FC = () => {
                   return (
                     <Col 
                       key={dayIndex} 
-                      className={`border p-2 position-relative ${!dayData.isCurrentMonth ? 'text-muted bg-light' : ''}`}
+                      className={`border p-2 position-relative ${!dayData.isCurrentMonth ? 'text-muted bg-light' : ''} ${dayData.hospitalDay?.isOnCall ? 'day-oncall' : ''} ${dayData.hospitalDay?.hasCardioSurgery ? 'day-cardio-surgery' : ''} ${dayData.hospitalDay?.hasThoracicSurgery ? 'day-thoracic-surgery' : ''}`}
                       style={{ 
                         minHeight: '100px', 
                         cursor: 'pointer',
@@ -233,14 +251,14 @@ const HospitalScheduleManager: React.FC = () => {
             {calendarDays.filter((day: any) => day !== null).map((dayData: any) => (
               <div 
                 key={dayData.date} 
-                className="mobile-calendar-day"
+                className={`mobile-calendar-day ${dayData.hospitalDay?.isOnCall ? 'oncall' : ''}`}
                 onClick={() => handleDayClick(dayData.date)}
                 style={{ cursor: 'pointer' }}
               >
                 <div className="mobile-day-left">
                   <div className="mobile-day-number">{dayData.dayNumber}</div>
                   <div className="mobile-day-name">
-                    {dayNames[new Date(dayData.date).getDay()]}
+                    {WEEKDAY_NAMES[new Date(`${dayData.date}T12:00:00`).getDay()]}
                   </div>
                 </div>
                 

@@ -62,7 +62,7 @@ const Signup: React.FC = () => {
     <div className="auth-container">
       <Container>
         <Row className="justify-content-center">
-          <Col xs={17} sm={10} md={15} lg={10} xl={6}>
+          <Col xs={12} sm={10} md={9} lg={8} xl={6}>
             <Card className="auth-card">
               <div className="auth-logo">
                 <Logo />

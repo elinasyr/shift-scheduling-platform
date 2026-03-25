@@ -1,241 +1,194 @@
-/* ===================================================================
-   GLOBAL COLOR THEME
-   To change the background colors throughout the app, simply modify 
-   the color values in the :root variables below:
-   - --primary-bg-color: Main background color for all pages
-   - --navbar-bg-color: Navigation bar background color
-   - --auth-bg-color: Login/Signup pages background color
-   - --card-bg-color: Background color for all cards and content boxes
-   
-   Example light green: #d4edda
-   Example light blue: #d1ecf1
-   Example light yellow: #fff3cd
-   Example white: white or #ffffff
-   =================================================================== */
-
-/* Global CSS Variables */
 :root {
-  --primary-bg-color: #066a5e99;
-  --navbar-bg-color: #65cb45c1;
-  --auth-bg-color: #e4bb17;
-  --card-bg-color: rgb(137, 5, 5);
+  --bg: #f3f5ef;
+  --surface: #ffffff;
+  --surface-2: #f8f8f2;
+  --line: #d9ded2;
+  --text: #1f2a1f;
+  --muted: #657064;
+  --primary: #1f6b57;
+  --primary-strong: #124a3c;
+  --accent: #b84d2a;
+  --warning: #bc7a12;
+  --danger: #b53f3f;
+  --info: #2f6f9f;
+  --success: #2f7d4b;
+  --shadow: 0 18px 40px rgba(31, 42, 31, 0.08);
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: "Aptos", "Segoe UI", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: var(--primary-bg-color) !important;
+  background:
+    radial-gradient(circle at top left, rgba(31, 107, 87, 0.12), transparent 28%),
+    linear-gradient(180deg, #eef3ea 0%, var(--bg) 100%);
+  color: var(--text);
   font-size: 16px;
   line-height: 1.5;
 }
 
+a {
+  color: var(--primary);
+}
+
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
-/* Authentication styles */
-.auth-container {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  background: var(--primary-bg-color);
-  padding: 15px;
+.min-vh-100 {
+  background: transparent;
 }
 
+.page-shell {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.box-around,
+.dashboard-card,
+.calendar-container,
 .auth-card {
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  border: none;
-  border-radius: 15px;
-  padding: 30px;
-  width: 100%;
-  max-width: 600px;
+  background: var(--surface);
+  border: 1px solid rgba(31, 42, 31, 0.06);
+  border-radius: 22px;
+  box-shadow: var(--shadow);
 }
 
 .box-around {
-  background-color: white;
-  padding: 2em;
-  border-radius: 1em;
+  padding: 1.5rem;
 }
 
-/* Mobile responsive auth styles */
-@media (max-width: 576px) {
-  .auth-card {
-    padding: 20px;
-    border-radius: 10px;
-    margin: 10px;
-  }
-  
-  .auth-container {
-    padding: 10px;
-  }
-}
-
-.auth-logo {
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.auth-logo img {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  margin: 0 5px 20px 5px;
-}
-
-/* Custom styles for the scheduling app */
-.calendar-container {
-  background: var(--card-bg-color);
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  margin: 20px 0;
-}
-
-/* Mobile responsive calendar styles */
-@media (max-width: 768px) {
-  .calendar-container {
-    padding: 15px;
-    margin: 10px 0;
-    border-radius: 6px;
-  }
-}
-
-.availability-day {
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.availability-day:hover {
-  opacity: 0.8;
-}
-
-.day-unavailable {
-  background-color: #ffebee !important;
-  border: 2px solid #f44336 !important;
-}
-
-.day-holiday {
-  background-color: #e0e0e0 !important;
-  border: 2px solid #9e9e9e !important;
-}
-
-.day-oncall {
-  position: relative;
-}
-
-.day-oncall::after {
-  content: '●';
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  color: #2196f3;
-  font-size: 12px;
-}
-
-.day-public-holiday::after {
-  content: '★';
-  position: absolute;
-  top: 5px;
-  left: 5px;
-  color: #ff9800;
-  font-size: 12px;
-}
-
-.day-cardio-surgery {
-  border-left: 4px solid #7b1fa2 !important;
-}
-
-.day-thoracic-surgery {
-  border-right: 4px solid #388e3c !important;
-}
-
-.day-indicators {
-  position: absolute;
-  bottom: 2px;
-  left: 50%;
-  transform: translateX(-50%);
+.hero-panel {
   display: flex;
-  gap: 2px;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 1.5rem;
+  border-radius: 24px;
+  background:
+    linear-gradient(135deg, rgba(31, 107, 87, 0.96) 0%, rgba(24, 74, 60, 0.96) 62%, rgba(184, 77, 42, 0.92) 100%);
+  color: #f8fbf6;
+  box-shadow: 0 24px 48px rgba(18, 74, 60, 0.22);
 }
 
-.surgery-indicator {
-  font-size: 10px;
-  opacity: 0.8;
+.eyebrow {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
-.surgery-indicator.cardio {
-  color: #7b1fa2;
+.page-title {
+  margin: 0;
+  font-size: clamp(1.8rem, 2.2vw, 2.4rem);
+  line-height: 1.1;
 }
 
-.surgery-indicator.thoracic {
-  color: #388e3c;
+.page-subtitle {
+  margin: 0.65rem 0 0;
+  max-width: 60ch;
+  color: rgba(248, 251, 246, 0.86);
 }
 
-/* Schedule view surgery indicators */
-.calendar-day.cardio-surgery {
-  border-left: 4px solid #7b1fa2 !important;
-}
-
-.calendar-day.thoracic-surgery {
-  border-right: 4px solid #388e3c !important;
-}
-
-.mobile-calendar-day.cardio-surgery {
-  border-left: 4px solid #7b1fa2;
-}
-
-.mobile-calendar-day.thoracic-surgery {
-  border-right: 4px solid #388e3c;
-}
-
-.profile-avatars {
+.hero-actions {
   display: flex;
-  margin-top: 5px;
-  gap: 2px;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: flex-end;
 }
 
-.profile-avatar {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 1px solid #fff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem 0;
+  background: transparent;
+  border-bottom: 0;
 }
 
-/* Navbar styles */
+.section-header + .card-body {
+  padding-top: 1rem;
+}
+
+.summary-card {
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: linear-gradient(180deg, #ffffff 0%, #f7f8f3 100%);
+  box-shadow: none;
+}
+
+.summary-card .card-body {
+  padding: 1rem 1.1rem;
+}
+
+.summary-label {
+  display: block;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.summary-value {
+  margin-top: 0.35rem;
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.summary-metric {
+  display: grid;
+  gap: 0.25rem;
+  padding: 1rem;
+  border-radius: 18px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+
+.status-badge {
+  font-size: 0.88rem;
+  padding: 0.5rem 0.7rem;
+}
+
+.info-banner {
+  border: 1px solid rgba(31, 107, 87, 0.14);
+  background: rgba(31, 107, 87, 0.07);
+  color: var(--text);
+}
+
 .app-navbar {
-  background-color: var(--navbar-bg-color) !important;
+  margin: 1rem auto 0;
+  max-width: 1200px;
+  border-radius: 24px;
+  border: 1px solid rgba(31, 42, 31, 0.08);
+  background: rgba(255, 255, 255, 0.88) !important;
+  backdrop-filter: blur(10px);
 }
 
 .navbar-brand img {
-  height: 85px;
+  height: 64px;
   width: auto;
-  max-width: 260px;
-  margin-right: 5px;
+  max-width: 220px;
+  margin-right: 4px;
 }
 
-/* Mobile navbar styles */
-@media (max-width: 768px) {
-  .navbar-brand img {
-    height: 45px;
-    width: auto;
-    max-width: 130px;
-  }
-  
-  .navbar-toggler {
-    padding: 4px 8px;
-    font-size: 1rem;
-    border: 1px solid #dee2e6;
-  }
-  
-  .navbar-collapse {
-    margin-top: 10px;
-  }
+.navbar .nav-link {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link:focus {
+  color: var(--primary);
 }
 
 .auth-container {
@@ -243,542 +196,503 @@ code {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--primary-bg-color);
+  padding: 1.5rem;
 }
 
 .auth-card {
-  background: var(--card-bg-color);
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  padding: 40px;
   width: 100%;
-  max-width: 600px;
+  max-width: 640px;
+  padding: 2rem;
 }
 
 .auth-logo {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 1.5rem;
 }
 
 .auth-logo img {
-  height: 70px;
+  height: 64px;
   width: auto;
-  margin: 0 5px 20px 5px;
+  margin: 0 5px 16px 5px;
+}
+
+.calendar-container .card-header,
+.dashboard-card .card-header {
+  background: transparent;
+  border-bottom: 0;
+}
+
+.calendar-container .card-body,
+.dashboard-card .card-body,
+.dashboard-card .card-footer,
+.calendar-container .card-footer {
+  padding: 1.25rem;
+}
+
+.calendar-grid {
+  display: grid;
+  gap: 1px;
+}
+
+.calendar-header,
+.calendar-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 1px;
+}
+
+.calendar-flags-spacing {
+  margin-right: 0.5rem;
+}
+
+.weekday {
+  padding: 0.75rem 0.4rem;
+  text-align: center;
+  font-weight: 700;
+  color: var(--muted);
+  background: #eef1ea;
+  border-radius: 14px 14px 0 0;
+}
+
+.availability-day,
+.schedule-calendar-day {
+  min-height: 120px;
+  padding: 0.75rem 0.75rem 0.65rem;
+  background: #ffffff;
+  border-radius: 0 0 14px 14px;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.availability-day:hover,
+.schedule-calendar-day:hover {
+  box-shadow: 0 8px 18px rgba(31, 42, 31, 0.08);
+}
+
+.calendar-day-muted {
+  background: #f2f4ef;
+  color: #9aa497;
+}
+
+.calendar-day-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  margin-left: 0.5rem;
+}
+
+.calendar-day-top strong {
+  display: inline-block;
+  margin-top: 0.15rem;
+  margin-left: 0.15rem;
+  line-height: 1;
+}
+
+.calendar-status-stack,
+.mobile-day-indicators {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.45rem;
+}
+
+.calendar-pill,
+.mobile-indicator {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.status-danger {
+  background: rgba(181, 63, 63, 0.12);
+  color: var(--danger);
+}
+
+.status-muted {
+  background: #ecefe8;
+  color: #616b61;
+}
+
+.status-alert {
+  background: rgba(184, 77, 42, 0.12);
+  color: var(--accent);
+}
+
+.status-warning {
+  background: rgba(188, 122, 18, 0.15);
+  color: var(--warning);
+}
+
+.status-success {
+  background: rgba(47, 125, 75, 0.13);
+  color: var(--success);
+}
+
+.status-info {
+  background: rgba(47, 111, 159, 0.13);
+  color: var(--info);
+}
+
+.profile-avatars {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: auto;
+  flex-wrap: wrap;
+}
+
+.profile-avatar,
+.profile-avatar-large {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.profile-avatar {
+  width: 28px;
+  height: 28px;
+  font-size: 0.7rem;
+}
+
+.profile-avatar-large {
+  width: 112px;
+  height: 112px;
+  background: linear-gradient(135deg, rgba(31, 107, 87, 0.12), rgba(184, 77, 42, 0.12));
+  color: var(--primary-strong);
+  font-size: 2rem;
+}
+
+.day-unavailable {
+  background: linear-gradient(180deg, rgba(181, 63, 63, 0.06), #ffffff);
+  border-color: rgba(181, 63, 63, 0.18) !important;
+}
+
+.day-holiday {
+  background: linear-gradient(180deg, rgba(121, 128, 121, 0.08), #ffffff);
+  border-color: rgba(121, 128, 121, 0.18) !important;
+}
+
+.day-oncall {
+  box-shadow: inset 0 0 0 3px rgba(224, 126, 39, 0.95);
+  border-color: rgba(224, 126, 39, 0.65) !important;
+}
+
+.day-cardio-surgery {
+  border-left: 5px solid #275f88 !important;
+  background-image: linear-gradient(180deg, rgba(39, 95, 136, 0.08), rgba(39, 95, 136, 0));
+}
+
+.day-thoracic-surgery {
+  border-right: 5px solid #5b7d38 !important;
+  background-image: linear-gradient(180deg, rgba(91, 125, 56, 0.08), rgba(91, 125, 56, 0));
+}
+
+.day-user-shift {
+  box-shadow:
+    inset 0 0 0 3px rgba(47, 125, 75, 0.36),
+    0 10px 20px rgba(31, 42, 31, 0.08);
+}
+
+.user-shift-anchor {
+  height: 0.25rem;
+}
+
+.surgery-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  padding: 0.18rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 900;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid currentColor;
+}
+
+.surgery-indicator.cardio,
+.legend-icon.cardio {
+  color: #275f88;
+}
+
+.surgery-indicator.thoracic,
+.legend-icon.thoracic {
+  color: #5b7d38;
+}
+
+.legend-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+}
+
+.legend-swatch {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 0.5rem;
+  border-radius: 6px;
+  vertical-align: -2px;
+}
+
+.legend-danger {
+  background: rgba(181, 63, 63, 0.16);
+  border: 1px solid rgba(181, 63, 63, 0.28);
+}
+
+.legend-muted {
+  background: #ecefe8;
+  border: 1px solid #d5dbd0;
+}
+
+.legend-success {
+  background: rgba(47, 125, 75, 0.16);
+  border: 1px solid rgba(47, 125, 75, 0.28);
+}
+
+.legend-oncall {
+  background: #ffffff;
+  border: 3px solid rgba(224, 126, 39, 0.95);
+}
+
+.legend-icon {
+  font-weight: 800;
+  margin-right: 0.35rem;
+}
+
+.doctor-assignment {
+  margin-bottom: 0.25rem;
+  padding: 0.28rem 0.45rem;
+  border-radius: 10px;
+  background: #eef3ea;
+  font-size: 0.78rem;
+}
+
+.doctor-assignment.current-user,
+.mobile-doctor-chip.current-user {
+  background: rgba(31, 107, 87, 0.14);
+  color: var(--primary-strong);
+}
+
+.schedule-calendar-day.mine {
+  border-color: rgba(31, 107, 87, 0.3);
+  box-shadow: inset 0 0 0 2px rgba(31, 107, 87, 0.14);
+}
+
+.schedule-calendar-day.oncall {
+  box-shadow: inset 0 0 0 3px rgba(224, 126, 39, 0.95);
+  border-color: rgba(224, 126, 39, 0.65) !important;
+}
+
+.schedule-calendar-day.empty {
+  min-height: 120px;
+  background: #f2f4ef;
+  border-radius: 0 0 14px 14px;
+}
+
+.calendar-assignment-list {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.workflow-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.workflow-step {
+  display: grid;
+  gap: 0.4rem;
+  padding: 1rem;
+  border-radius: 18px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+
+.mobile-calendar-view {
+  display: none;
+}
+
+.mobile-calendar-day {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.mobile-calendar-day.oncall {
+  border-left: 5px solid rgba(224, 126, 39, 0.95);
+}
+
+.mobile-day-left {
+  width: 56px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.mobile-day-number {
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.mobile-day-name {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.mobile-day-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.mobile-available-doctors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.mobile-doctor-chip {
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  background: #eef3ea;
+  font-size: 0.78rem;
+}
+
+.schedule-calendar-header,
+.schedule-calendar-grid {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.schedule-calendar-grid .calendar-week {
+  grid-template-columns: repeat(7, minmax(145px, 1fr));
+}
+
+.mobile-no-doctors {
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.user-assigned-row td {
+  background: rgba(31, 107, 87, 0.08);
+}
+
+.btn {
+  border-radius: 14px;
+  font-weight: 700;
+  padding: 0.6rem 1rem;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: none;
-  border-radius: 6px;
-  padding: 12px 30px;
-  font-weight: 600;
-}
-
-.btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-}
-
-.form-control {
-  border-radius: 6px;
-  border: 1px solid #ddd;
-  padding: 12px 15px;
-  margin-bottom: 15px;
-}
-
-.form-control:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-}
-
-.dashboard-card {
-  background: var(--card-bg-color);
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  margin-bottom: 20px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-strong));
   border: none;
 }
 
-/* Mobile responsive dashboard styles */
+.btn-primary:hover,
+.btn-primary:focus {
+  background: linear-gradient(135deg, #267961, #174f41);
+  border: none;
+}
+
+.btn-outline-primary {
+  border-color: rgba(31, 107, 87, 0.28);
+  color: var(--primary);
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus {
+  background: rgba(31, 107, 87, 0.09);
+  border-color: var(--primary);
+  color: var(--primary-strong);
+}
+
+.form-control,
+.form-select {
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  padding: 0.75rem 0.9rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: rgba(31, 107, 87, 0.4);
+  box-shadow: 0 0 0 0.2rem rgba(31, 107, 87, 0.12);
+}
+
+.table > :not(caption) > * > * {
+  border-bottom-color: var(--line);
+  vertical-align: middle;
+}
+
+.modal-content {
+  border: none;
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+}
+
+@media (max-width: 992px) {
+  .hero-panel,
+  .section-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hero-actions {
+    justify-content: flex-start;
+  }
+
+  .workflow-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
-  .dashboard-card {
-    padding: 15px;
-    margin-bottom: 15px;
-    border-radius: 6px;
+  .app-navbar {
+    margin-top: 0.5rem;
+    border-radius: 18px;
   }
-}
 
-.schedule-day {
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
-  padding: 10px;
-  margin: 2px;
-  min-height: 80px;
-  background: #fff;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-/* Google Calendar style mobile calendar */
-@media (max-width: 768px) {
-  .schedule-day {
-    padding: 4px;
-    margin: 1px;
-    min-height: 50px;
-    font-size: 0.8rem;
-  }
-  
-  /* Mobile calendar - Google Calendar style */
-  .mobile-calendar-view {
-    display: block !important;
-  }
-  
-  .desktop-calendar-view {
-    display: none !important;
-  }
-  
-  .mobile-calendar-day {
-    display: flex;
-    align-items: center;
-    padding: 12px 16px;
-    border-bottom: 1px solid #e0e0e0;
-    background: var(--card-bg-color);
-    margin-bottom: 0;
-  }
-  
-  .mobile-calendar-day:hover {
-    background-color: #f5f5f5;
-  }
-  
-  .mobile-day-left {
-    width: 60px;
-    text-align: center;
-    margin-right: 16px;
-    flex-shrink: 0;
-  }
-  
-  .mobile-day-number {
-    font-size: 1.1rem;
-    font-weight: 500;
-    color: #333;
-    line-height: 1.2;
-  }
-  
-  .mobile-day-name {
-    font-size: 0.75rem;
-    color: #666;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  
-  .mobile-day-content {
-    flex: 1;
-    min-width: 0;
-  }
-  
-  .mobile-day-indicators {
-    display: flex;
-    gap: 4px;
-    margin-bottom: 4px;
-  }
-  
-  .mobile-indicator {
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 0.65rem;
-    font-weight: 500;
-    text-transform: uppercase;
-  }
-  
-  .mobile-available-doctors {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    margin-top: 4px;
-  }
-  
-  .mobile-doctor-chip {
-    background: #e8f5e8;
-    color: #2e7d32;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.7rem;
-    font-weight: 500;
-  }
-  
-  .mobile-doctor-chip.current-user {
-    background: #1976d2;
-    color: white;
-  }
-  
-  .mobile-no-doctors {
-    color: #999;
-    font-size: 0.75rem;
-    font-style: italic;
-  }
-  
-  /* Today highlighting */
-  .mobile-calendar-day.today {
-    background: #fff3e0;
-    border-left: 4px solid #ff9800;
-  }
-  
-  .mobile-calendar-day.today .mobile-day-number {
-    color: #ff9800;
-    font-weight: 600;
-  }
-  
-  /* Weekend styling */
-  .mobile-calendar-day.weekend {
-    background: #fafafa;
-  }
-  
-  /* Special day indicators */
-  .mobile-calendar-day.unavailable {
-    background: #ffebee;
-  }
-  
-  .mobile-calendar-day.holiday {
-    background: #e0e0e0;
-  }
-  
-  .mobile-calendar-day.oncall {
-    border-left: 4px solid #2196f3;
-  }
-}
-
-.schedule-day:hover {
-  background: #f8f9fa;
-  border-color: #007bff;
-}
-
-.schedule-day.assigned {
-  background: #e3f2fd;
-  border-color: #2196f3;
-}
-
-.doctor-list-item {
-  background: var(--card-bg-color);
-  border: 1px solid #dee2e6;
-  border-radius: 8px;
-  padding: 15px;
-  margin-bottom: 10px;
-  transition: all 0.2s ease;
-}
-
-.doctor-list-item:hover {
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  border-color: #007bff;
-}
-
-.status-badge {
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-/* =================================
-   MOBILE RESPONSIVE STYLES
-   ================================= */
-
-/* Base mobile styles */
-@media (max-width: 576px) {
-  /* Container adjustments */
-  .container {
-    padding-left: 10px;
-    padding-right: 10px;
-  }
-  
-  /* Form controls */
-  .form-control {
-    font-size: 16px; /* Prevents zoom on iOS */
-    padding: 10px 12px;
-  }
-  
-  /* Buttons */
-  .btn {
-    padding: 10px 20px;
-    font-size: 0.95rem;
-  }
-  
-  .btn-sm {
-    padding: 6px 12px;
-    font-size: 0.85rem;
-  }
-  
-  /* Cards */
-  .card {
-    border-radius: 6px;
-  }
-  
-  .card-body {
-    padding: 15px;
-  }
-  
-  /* Tables - make them horizontally scrollable */
-  .table-responsive {
-    font-size: 0.85rem;
-  }
-  
-  /* Modal adjustments */
-  .modal-dialog {
-    margin: 10px;
-  }
-  
-  .modal-content {
-    border-radius: 8px;
-  }
-  
-  /* Doctor list items */
-  .doctor-list-item {
-    padding: 12px;
-    margin-bottom: 8px;
-  }
-  
-  /* Profile avatars */
-  .profile-avatar {
-    width: 16px;
-    height: 16px;
-  }
-}
-
-/* Tablet styles */
-@media (min-width: 577px) and (max-width: 768px) {
-  .container {
-    padding-left: 15px;
-    padding-right: 15px;
-  }
-  
-  .calendar-container {
-    padding: 18px;
-  }
-  
-  .dashboard-card {
-    padding: 18px;
-  }
-}
-
-/* Large mobile/small tablet styles */
-@media (max-width: 768px) {
-  /* Navigation improvements */
-  .navbar-nav .nav-link {
-    padding: 10px 15px;
-    text-align: center;
-  }
-  
-  /* Dropdown improvements */
-  .dropdown-menu {
-    min-width: 200px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-  }
-  
-  /* Desktop calendar should be hidden on mobile */
-  .desktop-calendar-view {
-    display: none !important;
-  }
-  
-  .mobile-calendar-view {
-    display: block !important;
-  }
-  
-  /* Form improvements */
-  .form-group {
-    margin-bottom: 15px;
-  }
-  
-  /* Alert improvements */
-  .alert {
-    padding: 12px;
-    font-size: 0.9rem;
-  }
-  
-  /* Badge improvements */
-  .badge {
-    font-size: 0.75rem;
-    padding: 4px 6px;
-  }
-  
-  /* Spacing adjustments */
-  .py-4 {
-    padding-top: 1.5rem !important;
-    padding-bottom: 1.5rem !important;
-  }
-  
-  .mb-4 {
-    margin-bottom: 1.5rem !important;
-  }
-}
-
-/* Desktop calendar styles */
-@media (min-width: 769px) {
-  .mobile-calendar-view {
-    display: none !important;
-  }
-  
-  .desktop-calendar-view {
-    display: block !important;
-  }
-}
-
-/* Touch-friendly improvements */
-@media (hover: none) and (pointer: coarse) {
-  .btn, .schedule-day, .doctor-list-item, .availability-day {
-    min-height: 44px; /* iOS recommendation for touch targets */
-  }
-  
-  .nav-link {
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-}
-
-/* Landscape phone styles */
-@media screen and (max-width: 896px) and (orientation: landscape) {
-  .auth-container {
-    padding: 10px;
-  }
-  
-  .auth-card {
-    padding: 20px;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-  
   .navbar-brand img {
-    height: 40px;
-    width: auto;
+    height: 44px;
+    max-width: 138px;
   }
-}
 
-/* Ultra-wide mobile styles */
-@media (max-width: 480px) {
-  h1 {
-    font-size: 1.5rem;
+  .page-shell {
+    gap: 1rem;
   }
-  
-  h2 {
-    font-size: 1.3rem;
-  }
-  
-  h3 {
-    font-size: 1.1rem;
-  }
-  
-  .auth-logo img {
-    height: 55px;
-    width: auto;
-  }
-  
-  .schedule-day {
-    min-height: 45px;
-    padding: 4px;
-    font-size: 0.7rem;
-  }
-  
-  .doctor-list-item {
-    padding: 10px;
-  }
-  
-  /* Extra small mobile calendar fixes */
-  .calendar-grid .col {
-    min-height: 50px !important;
-    font-size: 0.7rem !important;
-    padding: 1px !important;
-  }
-  
-  .calendar-grid .availability-day {
-    min-height: 50px !important;
-    font-size: 0.7rem !important;
-    padding: 1px !important;
-  }
-  
-  .profile-avatar {
-    width: 10px !important;
-    height: 10px !important;
-    font-size: 5px !important;
-  }
-  
-  /* Manager dashboard buttons fix */
-  .btn-group {
-    flex-direction: column !important;
-    width: 100% !important;
-  }
-  
-  .btn-group .btn {
-    margin-bottom: 5px !important;
-    border-radius: 6px !important;
-  }
-  
-  /* Mobile table improvements */
-  .table-responsive {
-    border: none;
-    box-shadow: none;
-  }
-  
-  .table-responsive table {
-    font-size: 0.8rem;
-  }
-  
-  .table-responsive th,
-  .table-responsive td {
-    padding: 0.5rem 0.3rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 120px;
-  }
-  
-  /* Make tables stack on very small screens */
-  .mobile-card-table {
-    display: none;
-  }
-}
 
-/* Mobile card-style table for very small screens */
-@media (max-width: 576px) {
-  .table-responsive table {
-    display: none;
+  .box-around,
+  .dashboard-card,
+  .calendar-container,
+  .auth-card {
+    border-radius: 18px;
   }
-  
-  .mobile-card-table {
+
+  .hero-panel {
+    padding: 1.15rem;
+    border-radius: 20px;
+  }
+
+  .mobile-calendar-view {
     display: block;
   }
-  
-  .mobile-table-card {
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    margin-bottom: 16px;
-    padding: 16px;
-    background: var(--card-bg-color);
+
+  .desktop-calendar-view {
+    display: none !important;
   }
-  
-  .mobile-table-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #eee;
-  }
-  
-  .mobile-table-row:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-    padding-bottom: 0;
-  }
-  
-  .mobile-table-label {
-    font-weight: 600;
-    color: #666;
-    font-size: 0.8rem;
-  }
-  
-  .mobile-table-value {
-    text-align: right;
-    font-size: 0.85rem;
+
+  .calendar-container .card-body,
+  .dashboard-card .card-body,
+  .dashboard-card .card-footer,
+  .calendar-container .card-footer {
+    padding: 1rem;
   }
 }

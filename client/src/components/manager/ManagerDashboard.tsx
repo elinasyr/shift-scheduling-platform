@@ -1,112 +1,116 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Button, Row, Col, Alert, Table, Badge, Modal, Form, Tabs, Tab } from 'react-bootstrap';
-import { useAuth } from '../../contexts/AuthContext';
-import { Schedule, Doctor, DayAvailability, GenerateScheduleRequest } from '../../types';
+import React, { useEffect, useState } from 'react';
+import { Alert, Badge, Button, ButtonGroup, Card, Col, Form, Modal, Row, Tab, Table, Tabs } from 'react-bootstrap';
+import { DayAvailability, Doctor, GenerateScheduleRequest, HospitalDay, Schedule } from '../../types';
 import * as api from '../../services/api';
 import LoadingSpinner from '../common/LoadingSpinner';
-import PendingDoctors from './PendingDoctors';
 import HospitalScheduleManager from './HospitalScheduleManager';
+import PendingDoctors from './PendingDoctors';
+import {
+  MONTH_NAMES,
+  formatDateLocal,
+  formatDisplayDate,
+  formatWeekdayLong,
+  getRankLabel,
+  getSpecialtyLabel
+} from '../../utils/medical';
 
 const ManagerDashboard: React.FC = () => {
-  const { user } = useAuth();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [schedule, setSchedule] = useState<Schedule[]>([]);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [allAvailability, setAllAvailability] = useState<{ [doctorId: string]: DayAvailability[] }>({});
+  const [hospitalDays, setHospitalDays] = useState<HospitalDay[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
   const [selectedDoctors, setSelectedDoctors] = useState<string[]>([]);
+  const [assignmentsViewMode, setAssignmentsViewMode] = useState<'calendar' | 'list'>('calendar');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
   useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        setLoading(true);
+        const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+        const startDateStr = formatDateLocal(startDate);
+        const endDateStr = formatDateLocal(endDate);
+
+        const [scheduleData, doctorsData, availabilityData, hospitalDaysData] = await Promise.all([
+          api.getSchedule(startDateStr, endDateStr),
+          api.getAllDoctors(),
+          api.getAllAvailability(startDateStr, endDateStr),
+          api.getHospitalSchedule(startDateStr, endDateStr)
+        ]);
+
+        setSchedule(scheduleData);
+        setDoctors(doctorsData);
+        setAllAvailability(availabilityData);
+        setHospitalDays(hospitalDaysData);
+      } catch (loadError) {
+        console.error('Failed to load dashboard data:', loadError);
+        setError('Αποτυχία φόρτωσης δεδομένων διαχείρισης.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadDashboardData();
   }, [currentDate]);
 
-  const loadDashboardData = async () => {
-    try {
-      setLoading(true);
-      // Create a date set to the 1st of current month to avoid day overflow issues
-      const baseDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-      const startDate = new Date(baseDate.getFullYear(), baseDate.getMonth() + 1, 1);
-      const endDate = new Date(baseDate.getFullYear(), baseDate.getMonth() + 2, 0);
-      
-      // Format dates as YYYY-MM-DD without timezone issues
-      const startDateStr = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
-      const endDateStr = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
-      
-      console.log('Date calculations:', {
-        baseDate: baseDate.toDateString(),
-        startDate: startDate.toDateString(),
-        endDate: endDate.toDateString(),
-        startDateStr,
-        endDateStr
-      });
+  const periodStart = formatDateLocal(new Date(currentDate.getFullYear(), currentDate.getMonth(), 1));
+  const periodEnd = formatDateLocal(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0));
 
-      const [scheduleData, doctorsData, availabilityData] = await Promise.all([
-        api.getSchedule(startDateStr, endDateStr),
-        api.getAllDoctors(),
-        api.getAllAvailability(startDateStr, endDateStr)
-      ]);
-      console.log('Loaded schedule entries:', availabilityData);
-      setSchedule(scheduleData);
-      setDoctors(doctorsData);
-      setAllAvailability(availabilityData);
-    } catch (error) {
-      console.error('Failed to load dashboard data:', error);
-      setError('Αποτυχία φόρτωσης δεδομένων πίνακα');
-    } finally {
-      setLoading(false);
-    }
+  const getDoctorName = (doctorId: string) => {
+    const doctor = doctors.find((entry) => String(entry.id) === String(doctorId));
+    return doctor ? `${doctor.firstName} ${doctor.lastName}` : 'Άγνωστος';
+  };
+
+  const getDoctorAvailability = (doctorId: string, date: string) => {
+    return allAvailability[doctorId]?.find((entry) => entry.date === date) || null;
   };
 
   const handleGenerateSchedule = async () => {
+    if (missingHospitalDays > 0) {
+      setError('Συμπληρώστε πρώτα όλες τις Ημέρες Νοσοκομείου του μήνα.');
+      return;
+    }
+
     try {
       setGenerating(true);
       setError('');
-      
-      // Create a date set to the 1st of current month to avoid day overflow issues
-      const baseDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-      const startDate = new Date(baseDate.getFullYear(), baseDate.getMonth() + 1, 1);
-      const endDate = new Date(baseDate.getFullYear(), baseDate.getMonth() + 2, 0);
-      
-      // Format dates as YYYY-MM-DD without timezone issues
-      const startDateStr = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
-      const endDateStr = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
-
-      console.log('Generate schedule date calculations:', {
-        baseDate: baseDate.toDateString(),
-        startDate: startDate.toDateString(),
-        endDate: endDate.toDateString(),
-        startDateStr,
-        endDateStr
-      });
-
-      const doctorIds = doctors.map(d => d.id);
-      const preferences = Object.values(allAvailability).flat();
+      setMessage('');
 
       const request: GenerateScheduleRequest = {
-        startDate: startDateStr,
-        endDate: endDateStr,
-        doctorIds,
-        preferences
+        startDate: periodStart,
+        endDate: periodEnd,
+        doctorIds: doctors.map((doctor) => doctor.id),
+        preferences: Object.values(allAvailability).flat()
       };
 
       const result = await api.generateSchedule(request);
-      
-      if (result.success) {
-        setMessage('Το πρόγραμμα δημιουργήθηκε επιτυχώς!');
-        await loadDashboardData();
-      } else {
-        setError('Αποτυχία δημιουργίας προγράμματος: ' + (result.conflicts?.join(', ') || 'Άγνωστο σφάλμα'));
+      if (!result.success) {
+        setError(`Αποτυχία δημιουργίας προγράμματος: ${result.conflicts?.join(', ') || 'άγνωστο σφάλμα'}`);
+        return;
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Αποτυχία δημιουργίας προγράμματος');
+
+      setMessage('Το προσχέδιο προγράμματος δημιουργήθηκε.');
+      setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), 1));
+    } catch (requestError: any) {
+      setError(requestError.response?.data?.message || 'Αποτυχία δημιουργίας προγράμματος.');
     } finally {
       setGenerating(false);
+      const refreshed = await Promise.all([
+        api.getSchedule(periodStart, periodEnd),
+        api.getAllAvailability(periodStart, periodEnd),
+        api.getHospitalSchedule(periodStart, periodEnd)
+      ]);
+      setSchedule(refreshed[0]);
+      setAllAvailability(refreshed[1]);
+      setHospitalDays(refreshed[2]);
     }
   };
 
@@ -117,274 +121,365 @@ const ManagerDashboard: React.FC = () => {
   };
 
   const handleSaveEdit = async () => {
-    if (!editingSchedule) return;
+    if (!editingSchedule) {
+      return;
+    }
 
     try {
       setSaving(true);
+      setError('');
       await api.updateSchedule(editingSchedule.date, selectedDoctors);
-      setMessage('Το πρόγραμμα ενημερώθηκε επιτυχώς!');
+      setMessage('Η ημέρα ενημερώθηκε.');
       setShowEditModal(false);
-      await loadDashboardData();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Αποτυχία ενημέρωσης προγράμματος');
+      setSchedule(await api.getSchedule(periodStart, periodEnd));
+    } catch (requestError: any) {
+      setError(requestError.response?.data?.message || 'Αποτυχία ενημέρωσης ημέρας.');
     } finally {
       setSaving(false);
     }
   };
 
   const handleFinalizeSchedule = async () => {
-    if (!window.confirm('Είστε σίγουροι ότι θέλετε να οριστικοποιήσετε αυτό το πρόγραμμα; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.')) {
+    if (!window.confirm('Θέλετε να οριστικοποιήσετε το πρόγραμμα αυτού του μήνα;')) {
       return;
     }
 
     try {
       setSaving(true);
-      // Create a date set to the 1st of current month to avoid day overflow issues
-      const baseDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-      const startDate = new Date(baseDate.getFullYear(), baseDate.getMonth() + 1, 1);
-      const endDate = new Date(baseDate.getFullYear(), baseDate.getMonth() + 2, 0);
-      
-      // Format dates as YYYY-MM-DD without timezone issues
-      const startDateStr = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
-      const endDateStr = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
-
-      console.log('Finalize schedule date calculations:', {
-        baseDate: baseDate.toDateString(),
-        startDate: startDate.toDateString(),
-        endDate: endDate.toDateString(),
-        startDateStr,
-        endDateStr
-      });
-
-      await api.finalizeSchedule(startDateStr, endDateStr);
-      setMessage('Το πρόγραμμα οριστικοποιήθηκε επιτυχώς!');
-      await loadDashboardData();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Αποτυχία οριστικοποίησης προγράμματος');
+      setError('');
+      await api.finalizeSchedule(periodStart, periodEnd);
+      setMessage('Το πρόγραμμα οριστικοποιήθηκε.');
+      setSchedule(await api.getSchedule(periodStart, periodEnd));
+    } catch (requestError: any) {
+      setError(requestError.response?.data?.message || 'Αποτυχία οριστικοποίησης.');
     } finally {
       setSaving(false);
     }
-  };
-
-  const getDoctorName = (doctorId: string) => {
-    const doctor = doctors.find(d => d.id === doctorId);
-    return doctor ? `${doctor.firstName} ${doctor.lastName}` : 'Άγνωστος Ειδικευόμενος';
-  };
-
-  const getDoctorAvailability = (doctorId: string, date: string) => {
-    const availability = allAvailability[doctorId];
-    if (!availability) return null;
-    return availability.find(a => a.date === date);
-  };
-
-  const nextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
-  };
-
-  const prevMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
   };
 
   if (loading) {
     return <LoadingSpinner message="Φόρτωση πίνακα διαχείρισης..." />;
   }
 
-  const monthNames = [
-    'Ιανουάριος', 'Φεβρουάριος', 'Μάρτιος', 'Απρίλιος', 'Μάιος', 'Ιούνιος',
-    'Ιούλιος', 'Αύγουστος', 'Σεπτέμβριος', 'Οκτώβριος', 'Νοέμβριος', 'Δεκέμβριος'
-  ];
-
   const hasSchedule = schedule.length > 0;
-  const hasDraftSchedule = schedule.some(s => !s.isFinalized);
+  const hasDraftSchedule = schedule.some((item) => !item.isFinalized);
+  const doctorsWithAvailability = Object.values(allAvailability).filter((entries) =>
+    entries.some((entry) => entry.isHoliday || entry.isUnavailable)
+  ).length;
+  const doctorsWithoutPreferences = doctors.length - doctorsWithAvailability;
 
-  // Display the month we're actually scheduling for (next month)
-  const baseDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-  const schedulingMonth = new Date(baseDate.getFullYear(), baseDate.getMonth() + 1, 1);
+  const summaryCards = [
+    { label: 'Ειδικευόμενοι', value: doctors.length, accent: 'primary' },
+    { label: 'Με δηλωμένες προτιμήσεις', value: doctorsWithAvailability, accent: 'success' },
+    { label: 'Χωρίς δηλώσεις', value: doctorsWithoutPreferences, accent: 'warning' },
+    { label: 'Ημέρες προσχεδίου', value: schedule.filter((item) => !item.isFinalized).length, accent: 'info' }
+  ];
+  const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+  const configuredHospitalDays = new Set(hospitalDays.map((day) => day.date)).size;
+  const missingHospitalDays = daysInMonth - configuredHospitalDays;
+
+  const renderAssignmentsCalendar = () => {
+    const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const offset = (firstDay.getDay() + 6) % 7;
+    const cells: Array<Date | null> = [];
+    for (let i = 0; i < offset; i += 1) {
+      cells.push(null);
+    }
+    for (let day = 1; day <= daysInMonth; day += 1) {
+      cells.push(new Date(currentDate.getFullYear(), currentDate.getMonth(), day, 12, 0, 0));
+    }
+
+    return (
+      <div className="desktop-calendar-view">
+        <div className="calendar-header schedule-calendar-header">
+          {['Δευ', 'Τρι', 'Τετ', 'Πεμ', 'Παρ', 'Σαβ', 'Κυρ'].map((dayName) => (
+            <div key={dayName} className="weekday">
+              {dayName}
+            </div>
+          ))}
+        </div>
+        <div className="calendar-grid schedule-calendar-grid">
+          {Array.from({ length: Math.ceil(cells.length / 7) }, (_, weekIndex) => (
+            <div key={weekIndex} className="calendar-week">
+              {cells.slice(weekIndex * 7, weekIndex * 7 + 7).map((day, dayIndex) => {
+                if (!day) {
+                  return <div key={`${weekIndex}-${dayIndex}`} className="schedule-calendar-day empty" />;
+                }
+
+                const dateStr = formatDateLocal(day);
+                const shift = schedule.find((item) => item.date === dateStr);
+                const hospitalDay = hospitalDays.find((item) => item.date === dateStr);
+
+                return (
+                  <div
+                    key={dateStr}
+                    className={`schedule-calendar-day ${hospitalDay?.isOnCall ? 'oncall' : ''}`}
+                  >
+                    <div className="calendar-day-top">
+                      <strong>{day.getDate()}</strong>
+                      <div className="calendar-flags">
+                        {hospitalDay?.hasCardioSurgery && <span className="surgery-indicator cardio">ΚΧ</span>}
+                        {hospitalDay?.hasThoracicSurgery && <span className="surgery-indicator thoracic">ΘΧ</span>}
+                      </div>
+                    </div>
+                    <div className="calendar-status-stack">
+                      {hospitalDay?.isOnCall && <span className="calendar-pill status-alert">Εφημερία</span>}
+                      {shift && (
+                        <span className={`calendar-pill ${shift.isFinalized ? 'status-success' : 'status-warning'}`}>
+                          {shift.isFinalized ? 'Τελικό' : 'Προσχέδιο'}
+                        </span>
+                      )}
+                    </div>
+                    <div className="calendar-assignment-list">
+                      {shift?.doctorIds.length ? (
+                        shift.doctorIds.map((doctorId) => (
+                          <div key={doctorId} className="doctor-assignment">
+                            {getDoctorName(doctorId)}
+                          </div>
+                        ))
+                      ) : (
+                        <span className="text-muted small">Χωρίς αναθέσεις</span>
+                      )}
+                    </div>
+                    <div className="mt-2">
+                      <Button variant="outline-primary" size="sm" onClick={() => shift && handleEditSchedule(shift)} disabled={!shift}>
+                        Επεξεργασία
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
 
   return (
-    <div className='box-around'>
-      <Row className="mb-4">
-        <Col>
-          <h2>Πίνακας Διαχείρισης</h2>
-          <p className="text-muted">Δημιουργία και διαχείριση προγραμμάτων εφημεριών ειδικευομένων</p>
-        </Col>
-      </Row>
+    <div className="page-shell">
+      <section className="hero-panel">
+        <div>
+          <span className="eyebrow">Διαχείριση μήνα</span>
+          <h1 className="page-title">Προσχέδιο προγράμματος εφημεριών</h1>
+          <p className="page-subtitle">
+            Προετοιμάσαι το πρόγραμμα για τον επόμενο μήνα: πρώτα περιορισμοί και εφημερίες νοσοκομείου, μετά δημιουργία προσχεδίου και τέλος οριστικοποίηση.
+          </p>
+        </div>
+        <div className="hero-actions">
+          <Button variant="outline-primary" onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))}>
+            ← Προηγούμενος
+          </Button>
+          <Button variant="outline-primary" onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))}>
+            Επόμενος →
+          </Button>
+        </div>
+      </section>
 
       {message && <Alert variant="success">{message}</Alert>}
       {error && <Alert variant="danger">{error}</Alert>}
 
-      <Tabs defaultActiveKey="schedule" className="mb-4">
-        <Tab eventKey="schedule" title="Διαχείριση Προγραμμάτων">
-          {/* Month Navigation and Actions */}
+      <Row className="g-3 mb-4">
+        {summaryCards.map((card) => (
+          <Col key={card.label} xs={6} lg={3}>
+            <Card className="summary-card h-100">
+              <Card.Body>
+                <span className="summary-label">{card.label}</span>
+                <div className={`summary-value text-${card.accent}`}>{card.value}</div>
+              </Card.Body>
+            </Card>
+          </Col>
+        ))}
+      </Row>
+
       <Card className="dashboard-card mb-4">
-        <Card.Header>
-          {/* Mobile-friendly layout */}
-          <div className="d-block d-lg-flex justify-content-between align-items-center">
-            {/* Month navigation */}
-            <div className="d-flex align-items-center justify-content-center mb-3 mb-lg-0">
-              <Button variant="outline-primary" onClick={prevMonth} className="me-2" size="sm">
-                ← Προηγ
+        <Card.Header className="section-header">
+          <div>
+            <h5 className="mb-1">
+              {MONTH_NAMES[currentDate.getMonth()]} {currentDate.getFullYear()}
+            </h5>
+            <small className="text-muted">Βήμα 1: ελέγξτε διαθεσιμότητα. Βήμα 2: δημιουργήστε προσχέδιο. Βήμα 3: διορθώστε και οριστικοποιήστε.</small>
+          </div>
+          <div className="d-flex flex-column flex-sm-row gap-2">
+            <Button variant="primary" onClick={handleGenerateSchedule} disabled={generating || missingHospitalDays > 0}>
+              {generating ? 'Δημιουργία...' : 'Δημιουργία προσχεδίου'}
+            </Button>
+            {hasSchedule && hasDraftSchedule && (
+              <Button variant="success" onClick={handleFinalizeSchedule} disabled={saving}>
+                {saving ? 'Οριστικοποίηση...' : 'Οριστικοποίηση'}
               </Button>
-              <h5 className="mb-0 mx-2 text-center">
-                <span className="d-none d-sm-inline">Προγραμματισμός για: </span>
-                {monthNames[schedulingMonth.getMonth()]} {schedulingMonth.getFullYear()}
-              </h5>
-              <Button variant="outline-primary" onClick={nextMonth} className="ms-2" size="sm">
-                Επόμ →
-              </Button>
-            </div>
-            
-            {/* Action buttons */}
-            <div className="d-flex flex-column flex-sm-row gap-2 justify-content-center">
-              <Button 
-                variant="primary" 
-                onClick={handleGenerateSchedule}
-                disabled={generating}
-                className="flex-fill"
-                size="sm"
-              >
-                {generating ? 'Δημιουργία...' : 'Δημιουργία Προγράμματος'}
-              </Button>
-              {hasSchedule && hasDraftSchedule && (
-                <Button 
-                  variant="success" 
-                  onClick={handleFinalizeSchedule}
-                  disabled={saving}
-                  className="flex-fill"
-                  size="sm"
-                >
-                  {saving ? 'Οριστικοποίηση...' : 'Οριστικοποίηση Προγράμματος'}
-                </Button>
-              )}
-            </div>
+            )}
           </div>
         </Card.Header>
       </Card>
 
-      {/* Schedule Overview */}
-      {hasSchedule ? (
-        <Card className="dashboard-card mb-4">
-          <Card.Header>
-            <h5 className="mb-0">Επισκόπηση Προγράμματος</h5>
-          </Card.Header>
-          <Card.Body>
-            <Table responsive hover>
-              <thead>
-                <tr>
-                  <th>Ημερομηνία</th>
-                  <th>Ημέρα</th>
-                  <th>Ανατεθέντες Ειδικευόμενοι</th>
-                  <th>Κατάσταση</th>
-                  <th>Ενέργειες</th>
-                </tr>
-              </thead>
-              <tbody>
-                {schedule.map((shift) => (
-                  <tr key={shift.id}>
-                    <td>{new Date(shift.date).toLocaleDateString('el-GR')}</td>
-                    <td>{new Date(shift.date).toLocaleDateString('el-GR', { weekday: 'long' })}</td>
-                    <td>
-                      {shift.doctorIds.length > 0 ? (
-                        shift.doctorIds.map(doctorId => getDoctorName(doctorId)).join(', ')
-                      ) : (
-                        <span className="text-muted">Χωρίς αναθέσεις</span>
-                      )}
-                    </td>
-                    <td>
-                      <Badge bg={shift.isFinalized ? 'success' : 'warning'}>
-                        {shift.isFinalized ? 'Οριστικοποιημένο' : 'Προσχέδιο'}
-                      </Badge>
-                    </td>
-                    <td>
-                      <Button 
-                        variant="outline-primary" 
-                        size="sm"
-                        onClick={() => handleEditSchedule(shift)}
-                      >
-                        Επεξεργασία
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          </Card.Body>
-        </Card>
-      ) : (
-        <Alert variant="info">
-          Δεν έχει δημιουργηθεί πρόγραμμα για αυτόν τον μήνα. Κάντε κλικ στο "Δημιουργία Προγράμματος" για να δημιουργήσετε ένα με βάση τις προτιμήσεις των ειδικευομένων.
+      {missingHospitalDays > 0 && (
+        <Alert variant="warning" className="info-banner">
+          Πριν δημιουργήσετε πρόγραμμα, πρέπει να συμπληρώσετε όλες τις Ημέρες Νοσοκομείου για τον μήνα.
+          Απομένουν {missingHospitalDays} από τις {daysInMonth} ημέρες.
         </Alert>
       )}
 
-      {/* Doctor Availability Overview */}
-      <Card className="dashboard-card">
-        <Card.Header>
-          <h5 className="mb-0">Σύνοψη Διαθεσιμότητας Ειδικευομένων</h5>
-        </Card.Header>
-        <Card.Body>
-          <Table responsive striped>
-            <thead>
-              <tr>
-                <th>Ειδικευόμενος</th>
-                <th>Ρόλος</th>
-                <th>Χειρουργεία</th>
-                <th>Διαθέσιμες Ημέρες</th>
-                <th>Μη Διαθέσιμες Ημέρες</th>
-                <th>Ημέρες Άδειας</th>
-              </tr>
-            </thead>
-            <tbody>
-              {doctors.map((doctor) => {
-                const availability = allAvailability[doctor.id] || [];
-                console.log(`Doctor ${doctor.id} availability:`, availability.length);
-                const availableDays = availability.filter(a => a.isAvailable).length;
-                const unavailableDays = availability.filter(a => a.isUnavailable).length;
-                console.log(`Doctor ${doctor.id} - Available: ${availableDays}, Unavailable: ${unavailableDays}`);
-                const holidayDays = availability.filter(a => a.isHoliday).length;
+      <Tabs defaultActiveKey="overview" className="mb-4">
+        <Tab eventKey="overview" title="Επισκόπηση μήνα">
+          <Card className="dashboard-card mb-4">
+            <Card.Header className="section-header">
+              <div>
+                <h5 className="mb-1">Πρόοδος προετοιμασίας</h5>
+                <small className="text-muted">Γρήγορος έλεγχος πριν τη δημιουργία ή δημοσίευση.</small>
+              </div>
+            </Card.Header>
+            <Card.Body>
+              <div className="workflow-grid">
+                <div className="workflow-step">
+                  <strong>1. Διαθεσιμότητα</strong>
+                  <span>{doctorsWithAvailability}/{doctors.length} γιατροί έχουν δηλώσει περιορισμούς.</span>
+                </div>
+                <div className="workflow-step">
+                  <strong>2. Προσχέδιο</strong>
+                  <span>{hasSchedule ? 'Υπάρχει πρόγραμμα προς έλεγχο.' : 'Δεν έχει δημιουργηθεί ακόμη προσχέδιο.'}</span>
+                </div>
+                <div className="workflow-step">
+                  <strong>3. Δημοσίευση</strong>
+                  <span>{hasDraftSchedule ? 'Υπάρχουν ακόμη ημέρες προσχεδίου.' : 'Όλες οι ημέρες είναι οριστικοποιημένες.'}</span>
+                </div>
+              </div>
+            </Card.Body>
+          </Card>
 
-                return (
-                  <tr key={doctor.id}>
-                    <td>
-                      <strong>{doctor.firstName} {doctor.lastName}</strong>
-                    </td>
-                    <td>
-                      <Badge bg={doctor.role === 'manager' ? 'primary' : 'secondary'}>
-                        {doctor.role}
-                      </Badge>
-                    </td>
-                    <td>{doctor.specialty || <span className="text-muted">Δεν έχει οριστεί</span>}</td>
-                    <td>
-                      <Badge bg="success">{availableDays}</Badge>
-                    </td>
-                    <td>
-                      <Badge bg="danger">{unavailableDays}</Badge>
-                    </td>
-                    <td>
-                      <Badge bg="warning">{holidayDays}</Badge>
-                    </td>
+          {hasSchedule ? (
+            <Card className="dashboard-card mb-4">
+              <Card.Header className="section-header">
+                <div>
+                  <h5 className="mb-1">Αναθέσεις ανά ημέρα</h5>
+                  <small className="text-muted">Επεξεργαστείτε μόνο τις ημέρες που χρειάζονται παρέμβαση.</small>
+                </div>
+                <ButtonGroup>
+                  <Button
+                    variant={assignmentsViewMode === 'calendar' ? 'primary' : 'outline-primary'}
+                    onClick={() => setAssignmentsViewMode('calendar')}
+                  >
+                    Ημερολόγιο
+                  </Button>
+                  <Button
+                    variant={assignmentsViewMode === 'list' ? 'primary' : 'outline-primary'}
+                    onClick={() => setAssignmentsViewMode('list')}
+                  >
+                    Λίστα
+                  </Button>
+                </ButtonGroup>
+              </Card.Header>
+              <Card.Body>
+                {assignmentsViewMode === 'calendar' ? (
+                  renderAssignmentsCalendar()
+                ) : (
+                  <Table responsive hover>
+                    <thead>
+                      <tr>
+                        <th>Ημερομηνία</th>
+                        <th>Ημέρα</th>
+                        <th>Ανατεθέντες</th>
+                        <th>Κατάσταση</th>
+                        <th>Ενέργεια</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {schedule.map((shift) => (
+                        <tr key={shift.id}>
+                          <td>{formatDisplayDate(shift.date)}</td>
+                          <td>{formatWeekdayLong(shift.date)}</td>
+                          <td>
+                            {shift.doctorIds.length ? shift.doctorIds.map((doctorId) => getDoctorName(doctorId)).join(', ') : 'Χωρίς αναθέσεις'}
+                          </td>
+                          <td>
+                            <Badge bg={shift.isFinalized ? 'success' : 'warning'}>
+                              {shift.isFinalized ? 'Οριστικοποιημένο' : 'Προσχέδιο'}
+                            </Badge>
+                          </td>
+                          <td>
+                            <Button variant="outline-primary" size="sm" onClick={() => handleEditSchedule(shift)}>
+                              Επεξεργασία
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                )}
+              </Card.Body>
+            </Card>
+          ) : (
+            <Alert variant="info">Δεν υπάρχει ακόμη προσχέδιο για αυτόν τον μήνα.</Alert>
+          )}
+
+          <Card className="dashboard-card">
+            <Card.Header className="section-header">
+              <div>
+                <h5 className="mb-1">Σύνοψη διαθεσιμότητας</h5>
+                <small className="text-muted">Ελέγξτε γρήγορα ποιοι έχουν δηλώσει περιορισμούς πριν παραχθεί πρόγραμμα.</small>
+              </div>
+            </Card.Header>
+            <Card.Body>
+              <Table responsive striped>
+                <thead>
+                  <tr>
+                    <th>Γιατρός</th>
+                    <th>Τομέας</th>
+                    <th>Βαθμίδα</th>
+                    <th>Μη διαθέσιμες</th>
+                    <th>Άδειες</th>
+                    <th>Διαθέσιμες</th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </Table>
-        </Card.Body>
-      </Card>
+                </thead>
+                <tbody>
+                  {doctors.map((doctor) => {
+                    const availability = allAvailability[doctor.id] || [];
+                    const availableDays = availability.filter((entry) => entry.isAvailable).length;
+                    const unavailableDays = availability.filter((entry) => entry.isUnavailable).length;
+                    const holidayDays = availability.filter((entry) => entry.isHoliday).length;
 
-      {/* Edit Schedule Modal */}
+                    return (
+                      <tr key={doctor.id}>
+                        <td>
+                          <strong>{doctor.firstName} {doctor.lastName}</strong>
+                        </td>
+                        <td>{getSpecialtyLabel(doctor.specialty)}</td>
+                        <td>{getRankLabel(doctor.rank)}</td>
+                        <td><Badge bg="danger">{unavailableDays}</Badge></td>
+                        <td><Badge bg="secondary">{holidayDays}</Badge></td>
+                        <td><Badge bg="success">{availableDays}</Badge></td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </Table>
+            </Card.Body>
+          </Card>
+        </Tab>
+
+        <Tab eventKey="approvals" title="Εγκρίσεις">
+          <PendingDoctors />
+        </Tab>
+
+        <Tab eventKey="hospital-schedule" title="Ημέρες νοσοκομείου">
+          <HospitalScheduleManager activeMonth={currentDate} onMonthChange={setCurrentDate} />
+        </Tab>
+      </Tabs>
+
       <Modal show={showEditModal} onHide={() => setShowEditModal(false)} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>
-            Επεξεργασία Προγράμματος για {editingSchedule?.date ? new Date(editingSchedule.date).toLocaleDateString('el-GR') : ''}
+            Επεξεργασία ημέρας {editingSchedule?.date ? formatDisplayDate(editingSchedule.date) : ''}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
             <Form.Group>
-              <Form.Label>Ανάθεση Ειδικευομένων για αυτήν την Ημέρα</Form.Label>
+              <Form.Label>Ανάθεση ειδικευομένων</Form.Label>
               {doctors.map((doctor) => {
                 const availability = editingSchedule ? getDoctorAvailability(doctor.id, editingSchedule.date) : null;
                 const isAvailable = availability?.isAvailable ?? true;
-                
+
                 return (
                   <Form.Check
                     key={doctor.id}
@@ -392,17 +487,17 @@ const ManagerDashboard: React.FC = () => {
                     id={`doctor-${doctor.id}`}
                     label={
                       <span>
-                        {doctor.firstName} {doctor.lastName} 
-                        {doctor.specialty && <Badge bg="secondary" className="ms-2">{doctor.specialty}</Badge>}
-                        {!isAvailable && <Badge bg="danger" className="ms-2">Μη Διαθέσιμος</Badge>}
+                        {doctor.firstName} {doctor.lastName}
+                        <Badge bg="light" text="dark" className="ms-2">{getSpecialtyLabel(doctor.specialty)}</Badge>
+                        {!isAvailable && <Badge bg="danger" className="ms-2">Μη διαθέσιμος</Badge>}
                       </span>
                     }
                     checked={selectedDoctors.includes(doctor.id)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
+                    onChange={(event) => {
+                      if (event.target.checked) {
                         setSelectedDoctors([...selectedDoctors, doctor.id]);
                       } else {
-                        setSelectedDoctors(selectedDoctors.filter(id => id !== doctor.id));
+                        setSelectedDoctors(selectedDoctors.filter((id) => id !== doctor.id));
                       }
                     }}
                     disabled={!isAvailable}
@@ -417,25 +512,11 @@ const ManagerDashboard: React.FC = () => {
           <Button variant="secondary" onClick={() => setShowEditModal(false)}>
             Ακύρωση
           </Button>
-          <Button 
-            variant="primary" 
-            onClick={handleSaveEdit}
-            disabled={saving}
-          >
-            {saving ? 'Αποθήκευση...' : 'Αποθήκευση Αλλαγών'}
+          <Button variant="primary" onClick={handleSaveEdit} disabled={saving}>
+            {saving ? 'Αποθήκευση...' : 'Αποθήκευση'}
           </Button>
         </Modal.Footer>
       </Modal>
-        </Tab>
-
-        <Tab eventKey="approvals" title="Εγκρίσεις Ειδικευομένων">
-          <PendingDoctors />
-        </Tab>
-
-        <Tab eventKey="hospital-schedule" title="Πρόγραμμα Νοσοκομείου">
-          <HospitalScheduleManager />
-        </Tab>
-      </Tabs>
     </div>
   );
 };

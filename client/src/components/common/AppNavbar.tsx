@@ -3,6 +3,7 @@ import { Navbar, Nav, Container, Dropdown, Image } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import Logo from './Logo';
+import { getRoleLabel, getSpecialtyLabel } from '../../utils/medical';
 
 const AppNavbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -90,8 +91,13 @@ const AppNavbar: React.FC = () => {
               <Dropdown.Menu>
                 <Dropdown.ItemText>
                   <small className="text-muted">
-                    Ρόλος: {user.role === 'doctor' ? 'Ειδικευόμενος' : user.role === 'manager' ? 'Διαχειριστής' : 'Θεατής'}
-                    {user.specialty && <><br />Τύπος Χειρουργείων: {user.specialty.charAt(0).toUpperCase() + user.specialty.slice(1)}</>}
+                    Ρόλος: {getRoleLabel(user.role)}
+                    {user.specialty && (
+                      <>
+                        <br />
+                        Τομέας: {getSpecialtyLabel(user.specialty)}
+                      </>
+                    )}
                   </small>
                 </Dropdown.ItemText>
                 <Dropdown.Divider />
